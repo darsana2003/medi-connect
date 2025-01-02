@@ -8,13 +8,14 @@ export default function AdminLogin() {
   const router = useRouter()
   const [adminId, setAdminId] = useState('')
   const [password, setPassword] = useState('')
+  const [hospitalName, setHospitalName] = useState('')
   const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (!adminId || !password) {
+    if (!adminId || !password || !hospitalName) {
       setError('Please fill in all fields')
       return
     }
@@ -52,6 +53,23 @@ export default function AdminLogin() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
+              <label htmlFor="hospitalName" className="block text-sm font-medium text-[#04282E]">
+                Hospital Name
+              </label>
+              <input
+                type="text"
+                id="hospitalName"
+                value={hospitalName}
+                onChange={(e) => setHospitalName(e.target.value)}
+                className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                         focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                         text-[#04282E] placeholder-[#ADADAD]"
+                placeholder="Enter your hospital name"
+                required
+              />
+            </div>
+
+            <div>
               <label htmlFor="adminId" className="block text-sm font-medium text-[#04282E]">
                 Admin ID
               </label>
@@ -63,9 +81,10 @@ export default function AdminLogin() {
                 className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
                          text-[#04282E] placeholder-[#ADADAD]"
-                placeholder="Enter your Admin ID"
+                placeholder="Enter your Admin ID (e.g., ADMIN123)"
                 required
               />
+              <p className="mt-1 text-xs text-[#ADADAD]">Example ID: ADMIN123</p>
             </div>
 
             <div>
@@ -83,6 +102,7 @@ export default function AdminLogin() {
                 placeholder="Enter your password"
                 required
               />
+              <p className="mt-1 text-xs text-[#ADADAD]">Example password: admin123</p>
             </div>
 
             <button

@@ -8,14 +8,15 @@ export default function DoctorLogin() {
   const router = useRouter()
   const [doctorId, setDoctorId] = useState('')
   const [password, setPassword] = useState('')
+  const [hospitalName, setHospitalName] = useState('')
   const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    // Basic validation
-    if (!doctorId || !password) {
+    // Basic validation including hospital name
+    if (!doctorId || !password || !hospitalName) {
       setError('Please fill in all fields')
       return
     }
@@ -53,6 +54,23 @@ export default function DoctorLogin() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="hospitalName" className="block text-sm font-medium text-[#04282E]">
+                Hospital Name
+              </label>
+              <input
+                type="text"
+                id="hospitalName"
+                value={hospitalName}
+                onChange={(e) => setHospitalName(e.target.value)}
+                className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                         focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                         text-[#04282E] placeholder-[#ADADAD]"
+                placeholder="Enter your hospital name"
+                required
+              />
+            </div>
+
             <div>
               <label htmlFor="doctorId" className="block text-sm font-medium text-[#04282E]">
                 Doctor ID
