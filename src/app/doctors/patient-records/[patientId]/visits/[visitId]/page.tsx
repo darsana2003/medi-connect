@@ -57,6 +57,10 @@ interface VisitDetail {
     result: string;
     normalRange?: string;
     notes?: string;
+    images?: Array<{
+      url: string;
+      caption: string;
+    }>;
   }>;
 }
 
@@ -83,6 +87,11 @@ export default function DetailedVisitView({
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{
+    id: string;
+    name: string;
+    url: string;
+  }>>([])
 
   useEffect(() => {
     // Simulated data - replace with actual API call
@@ -158,13 +167,20 @@ export default function DetailedVisitView({
           date: "2024-02-01",
           result: "Normal",
           normalRange: "WBC: 4.5-11.0 × 10⁹/L",
-          notes: "All parameters within normal range"
+          notes: "All parameters within normal range",
+          images: []
         },
         {
           name: "Chest X-Ray",
           date: "2024-02-01",
           result: "Clear",
-          notes: "No significant findings"
+          notes: "No significant findings",
+          images: [
+            {
+              url: "/sample-xray.jpg",
+              caption: "Chest X-Ray Front View"
+            }
+          ]
         }
       ]
     };
@@ -179,26 +195,42 @@ export default function DetailedVisitView({
     setSelectedFiles(e.target.files)
   }
 
-  const handleUpload = async () => {
-    if (!selectedFiles) return
-
-    setUploading(true)
-    // Implement your file upload logic here
-    // This is a placeholder for the actual upload functionality
+  const handleDeleteFile = async (fileId: string) => {
     try {
-      // Simulated upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      console.log('Files uploaded:', selectedFiles)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-      setSelectedFiles(null)
+      setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
     } catch (error) {
-      console.error('Upload failed:', error)
-    } finally {
-      setUploading(false)
+      console.error('Error deleting file:', error);
     }
-  }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFiles) return;
+
+    setUploading(true);
+    try {
+      // Simulate file upload
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Add uploaded files to state with unique IDs
+      const newFiles = Array.from(selectedFiles).map(file => ({
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        url: URL.createObjectURL(file)
+      }));
+      
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setSelectedFiles(null);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -435,7 +467,7 @@ export default function DetailedVisitView({
             <div key={`images-${index}`} className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
               <h3 className="text-lg font-medium text-[#0D6C7E] mb-4">{report.name} - Images</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {report.images.map((image, imgIndex) => (
+                {report.images.map((image: { url: string; caption: string }, imgIndex: number) => (
                   <div key={imgIndex} className="relative">
                     <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
                       <Image
@@ -528,6 +560,67 @@ export default function DetailedVisitView({
             </button>
           </div>
         </div>
+
+        {/* Display Uploaded Files with Delete Option */}
+        {uploadedFiles.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2 mt-6">
+            <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Uploaded Files</h2>
+            <div className="space-y-4">
+              {uploadedFiles.map((file) => (
+                <div 
+                  key={file.id} 
+                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex items-center space-x-4">
+                    {/* File Icon */}
+                    <svg
+                      className="w-8 h-8 text-[#0D6C7E]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    
+                    {/* File Name */}
+                    <span className="text-black">{file.name}</span>
+                  </div>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleDeleteFile(file.id)}
+                    className="flex items-center space-x-1 text-red-600 hover:text-red-700 transition-colors duration-200"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    <span className="text-sm font-medium">Delete</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Confirmation Dialog for Delete */}
+            <div className="mt-4 text-sm text-gray-500">
+              <p>* Files can be deleted only before saving the record</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
