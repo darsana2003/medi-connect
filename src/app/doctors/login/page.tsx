@@ -10,22 +10,29 @@ export default function DoctorLogin() {
   const [password, setPassword] = useState('')
   const [hospitalName, setHospitalName] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsLoading(true)
 
-    // Basic validation including hospital name
-    if (!doctorId || !password || !hospitalName) {
-      setError('Please fill in all fields')
-      return
-    }
+    try {
+      if (doctorId === 'DOC123' && password === 'password123') {
+        // Store doctor info
+        localStorage.setItem('doctorName', 'Dr. John Doe')
+        localStorage.setItem('doctorId', doctorId)
+        localStorage.setItem('hospitalName', hospitalName)
 
-    // Example doctor credentials (replace with your actual authentication logic)
-    if (doctorId === 'DOC123' && password === 'password123') {
-      router.push('/doctors/dashboard')
-    } else {
-      setError('Invalid doctor ID or password')
+        // Redirect to dashboard
+        await router.replace('/doctors/dashboard')
+      } else {
+        setError('Invalid doctor ID or password')
+      }
+    } catch (error) {
+      setError('An error occurred during login')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -65,7 +72,7 @@ export default function DoctorLogin() {
                 onChange={(e) => setHospitalName(e.target.value)}
                 className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                         text-[#04282E] placeholder-[#ADADAD]"
+                         text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
                 placeholder="Enter your hospital name"
                 required
               />
@@ -82,7 +89,7 @@ export default function DoctorLogin() {
                 onChange={(e) => setDoctorId(e.target.value)}
                 className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                         text-[#04282E] placeholder-[#ADADAD]"
+                         text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
                 placeholder="Enter your Doctor ID (e.g., DOC123)"
                 required
               />
@@ -100,7 +107,7 @@ export default function DoctorLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                         text-[#04282E] placeholder-[#ADADAD]"
+                         text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
                 placeholder="Enter your password"
                 required
               />
@@ -109,17 +116,19 @@ export default function DoctorLogin() {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="w-full py-4 px-6 bg-[#0D6C7E] hover:bg-[#08505D] 
                        text-white rounded-lg transition-colors duration-200
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]"
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]
+                       disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Login
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
           <div className="mt-6 text-center space-y-2">
             <a 
-              href="#" 
+              href="/doctors/forgot-password"
               className="text-sm text-[#F4A261] hover:text-[#E76F51] transition-colors duration-200"
             >
               Forgot password?
