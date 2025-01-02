@@ -98,12 +98,18 @@ export default function DetailedVisitView({
     id: string;
     name: string;
     url: string;
+    type: 'image' | 'pdf';
+    reportType: string;
+    description: string;
+    uploadedAt: string;
   }>>([])
   const [selectedFile, setSelectedFile] = useState<{
     url: string;
     type: 'image' | 'pdf';
     name: string;
   } | null>(null)
+  const [reportType, setReportType] = useState<string>('')
+  const [reportDescription, setReportDescription] = useState<string>('')
 
   useEffect(() => {
     // Simulated data - replace with actual API call
@@ -234,7 +240,7 @@ export default function DetailedVisitView({
   };
 
   const handleUpload = async () => {
-    if (!selectedFiles) return;
+    if (!selectedFiles || !reportType) return;
 
     setUploading(true);
     try {
@@ -245,16 +251,30 @@ export default function DetailedVisitView({
       const newFiles = Array.from(selectedFiles).map(file => ({
         id: Math.random().toString(36).substr(2, 9),
         name: file.name,
-        url: URL.createObjectURL(file)
-      }));
+        url: URL.createObjectURL(file),
+        type: file.type.startsWith('image/') ? 'image' : 'pdf',
+        reportType,
+        description: reportDescription,
+        uploadedAt: new Date().toISOString()
+      })) as Array<{
+        id: string;
+        name: string;
+        url: string;
+        type: "image" | "pdf";
+        reportType: string;
+        description: string;
+        uploadedAt: string;
+      }>;
       
       setUploadedFiles(prev => [...prev, ...newFiles]);
       
-      // Reset file input
+      // Reset form
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
       setSelectedFiles(null);
+      setReportType('');
+      setReportDescription('');
     } catch (error) {
       console.error('Upload failed:', error);
     } finally {
@@ -421,6 +441,47 @@ export default function DetailedVisitView({
             )}
           </div>
 
+          {/* Report Type Selection */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[#04282E] mb-2">
+              Report Type
+            </label>
+            <select
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
+              required
+            >
+              <option value="">Select Report Type</option>
+              <option value="Blood Test">Blood Test</option>
+              <option value="X-Ray">X-Ray</option>
+              <option value="MRI">MRI</option>
+              <option value="CT Scan">CT Scan</option>
+              <option value="Ultrasound">Ultrasound</option>
+              <option value="ECG">ECG</option>
+              <option value="EEG">EEG</option>
+              <option value="Endoscopy">Endoscopy</option>
+              <option value="Biopsy">Biopsy</option>
+              <option value="Urine Test">Urine Test</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          {/* Description Field */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[#04282E] mb-2">
+              Description
+            </label>
+            <textarea
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
+              rows={3}
+              placeholder="Enter report description or additional notes"
+            />
+          </div>
+
+          {/* File Upload Section */}
           <div className="space-y-4">
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
               <div className="flex flex-col items-center">
@@ -446,13 +507,23 @@ export default function DetailedVisitView({
                   accept="image/*,.pdf"
                   className="hidden"
                   id="file-upload"
+                  disabled={!reportType} // Disable if no report type selected
                 />
                 <label
                   htmlFor="file-upload"
-                  className="cursor-pointer bg-[#0D6C7E] text-white px-4 py-2 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200"
+                  className={`cursor-pointer px-4 py-2 rounded-lg transition-colors duration-200 ${
+                    reportType 
+                      ? 'bg-[#0D6C7E] text-white hover:bg-[#0A5A6A]' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   Browse Files
                 </label>
+                {!reportType && (
+                  <p className="text-red-500 text-sm mt-2">
+                    Please select a report type first
+                  </p>
+                )}
               </div>
             </div>
 
@@ -602,7 +673,6 @@ export default function DetailedVisitView({
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
                 >
                   <div className="flex items-center space-x-4">
-                    {/* File Icon */}
                     <svg
                       className="w-8 h-8 text-[#0D6C7E]"
                       fill="none"
@@ -617,8 +687,13 @@ export default function DetailedVisitView({
                       />
                     </svg>
                     
-                    {/* File Name */}
-                    <span className="text-black">{file.name}</span>
+                    <div>
+                      <span className="text-black font-medium">{file.name}</span>
+                      <div className="text-sm text-gray-500">
+                        <p>Type: {file.reportType}</p>
+                        {file.description && <p>Description: {file.description}</p>}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Delete Button */}
