@@ -164,10 +164,11 @@ export default function DoctorDashboard() {
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
+              onClick={() => router.push('/doctors/monthly-appointments')}
               className="p-4 bg-[#0D6C7E] hover:bg-[#08505D] text-white rounded-lg 
                        transition-colors duration-200 flex items-center justify-center space-x-2"
             >
-              <span>View All Appointments</span>
+              <span>Monthly Appointments</span>
             </button>
             <button
               onClick={() => router.push('/doctors/schedule')}
