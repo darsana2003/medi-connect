@@ -61,6 +61,13 @@ interface VisitDetail {
       url: string;
       caption: string;
     }>;
+    files?: Array<{
+      id: string;
+      name: string;
+      url: string;
+      type: 'image' | 'pdf';
+      uploadedAt: string;
+    }>;
   }>;
 }
 
@@ -92,6 +99,11 @@ export default function DetailedVisitView({
     name: string;
     url: string;
   }>>([])
+  const [selectedFile, setSelectedFile] = useState<{
+    url: string;
+    type: 'image' | 'pdf';
+    name: string;
+  } | null>(null)
 
   useEffect(() => {
     // Simulated data - replace with actual API call
@@ -168,17 +180,35 @@ export default function DetailedVisitView({
           result: "Normal",
           normalRange: "WBC: 4.5-11.0 × 10⁹/L",
           notes: "All parameters within normal range",
-          images: []
+          files: [
+            {
+              id: "1",
+              name: "CBC_Report.pdf",
+              url: "/sample-reports/cbc.pdf",
+              type: "pdf",
+              uploadedAt: "2024-02-01T10:30:00Z"
+            }
+          ]
         },
         {
           name: "Chest X-Ray",
           date: "2024-02-01",
           result: "Clear",
           notes: "No significant findings",
-          images: [
+          files: [
             {
+              id: "2",
+              name: "Chest_XRay_Front.jpg",
               url: "/sample-xray.jpg",
-              caption: "Chest X-Ray Front View"
+              type: "image",
+              uploadedAt: "2024-02-01T11:15:00Z"
+            },
+            {
+              id: "3",
+              name: "Chest_XRay_Side.jpg",
+              url: "/sample-xray-side.jpg",
+              type: "image",
+              uploadedAt: "2024-02-01T11:15:00Z"
             }
           ]
         }
@@ -618,6 +648,169 @@ export default function DetailedVisitView({
             {/* Confirmation Dialog for Delete */}
             <div className="mt-4 text-sm text-gray-500">
               <p>* Files can be deleted only before saving the record</p>
+            </div>
+          </div>
+        )}
+
+        {/* Previous Test Reports Viewer */}
+        <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+          <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Previous Test Reports</h2>
+          <div className="space-y-6">
+            {visitData.testReports.map((report, reportIndex) => (
+              report.files && report.files.length > 0 && (
+                <div key={reportIndex} className="border-b border-gray-200 last:border-0 pb-6 last:pb-0">
+                  <h3 className="text-lg font-medium text-[#0D6C7E] mb-3">{report.name}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {report.files.map((file, fileIndex) => (
+                      <div 
+                        key={fileIndex}
+                        className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                      >
+                        {/* File Preview */}
+                        <div 
+                          className="aspect-w-16 aspect-h-9 mb-3 cursor-pointer"
+                          onClick={() => setSelectedFile(file)}
+                        >
+                          {file.type === 'image' ? (
+                            <Image
+                              src={file.url}
+                              alt={file.name}
+                              layout="fill"
+                              objectFit="cover"
+                              className="rounded-lg"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center bg-gray-100 rounded-lg">
+                              <svg
+                                className="w-12 h-12 text-[#0D6C7E]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* File Info */}
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-[#04282E] truncate">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Uploaded: {new Date(file.uploadedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="mt-3 flex space-x-2">
+                          <button
+                            onClick={() => setSelectedFile(file)}
+                            className="flex items-center space-x-1 text-[#0D6C7E] hover:text-[#0A5A6A] text-sm"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
+                            <span>View</span>
+                          </button>
+                          <a
+                            href={file.url}
+                            download={file.name}
+                            className="flex items-center space-x-1 text-[#0D6C7E] hover:text-[#0A5A6A] text-sm"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                              />
+                            </svg>
+                            <span>Download</span>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+
+        {/* File Preview Modal */}
+        {selectedFile && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center p-4 border-b">
+                <h3 className="text-lg font-medium text-[#04282E]">{selectedFile.name}</h3>
+                <button
+                  onClick={() => setSelectedFile(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-4">
+                {selectedFile.type === 'image' ? (
+                  <div className="relative h-[60vh]">
+                    <Image
+                      src={selectedFile.url}
+                      alt={selectedFile.name}
+                      layout="fill"
+                      objectFit="contain"
+                    />
+                  </div>
+                ) : (
+                  <iframe
+                    src={selectedFile.url}
+                    className="w-full h-[60vh]"
+                    title={selectedFile.name}
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}
