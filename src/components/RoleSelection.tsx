@@ -5,42 +5,28 @@ import { useRouter } from 'next/navigation'
 
 const RoleSelection = () => {
   const router = useRouter()
-  const [name, setName] = useState('')
   const [role, setRole] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (name && role) {
+    if (role) {
       router.push(`/${role.toLowerCase()}`)
     }
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <div className="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg border border-[#E0E0E0]">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Your Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            required
-          />
-        </div>
-        
         <div className="space-y-4">
+          <p className="text-sm font-medium text-[#04282E]">Select your role</p>
           <div className="flex items-center space-x-4">
             <button
               type="button"
               onClick={() => setRole('Doctor')}
-              className={`flex-1 py-3 px-4 rounded-lg border ${
+              className={`flex-1 py-4 px-6 rounded-lg border transition-colors duration-200 ${
                 role === 'Doctor'
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-500'
+                  ? 'bg-[#0D6C7E] text-white border-[#0D6C7E]'
+                  : 'bg-white text-[#04282E] border-[#E0E0E0] hover:bg-[#F4F4F4]'
               }`}
             >
               Doctor
@@ -49,10 +35,10 @@ const RoleSelection = () => {
             <button
               type="button"
               onClick={() => setRole('Admin')}
-              className={`flex-1 py-3 px-4 rounded-lg border ${
+              className={`flex-1 py-4 px-6 rounded-lg border transition-colors duration-200 ${
                 role === 'Admin'
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-500'
+                  ? 'bg-[#0D6C7E] text-white border-[#0D6C7E]'
+                  : 'bg-white text-[#04282E] border-[#E0E0E0] hover:bg-[#F4F4F4]'
               }`}
             >
               Admin
@@ -62,8 +48,11 @@ const RoleSelection = () => {
 
         <button
           type="submit"
-          disabled={!name || !role}
-          className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={!role}
+          className="w-full py-4 px-6 border border-transparent rounded-lg shadow-sm text-white
+                   bg-[#F4A261] hover:bg-[#E76F51] transition-colors duration-200
+                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#F4A261]
+                   disabled:bg-[#E0E0E0] disabled:cursor-not-allowed"
         >
           Continue
         </button>
