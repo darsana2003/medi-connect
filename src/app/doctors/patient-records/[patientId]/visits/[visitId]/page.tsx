@@ -91,25 +91,12 @@ export default function DetailedVisitView({
   const router = useRouter()
   const [visitData, setVisitData] = useState<VisitDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{
-    id: string;
-    name: string;
-    url: string;
-    type: 'image' | 'pdf';
-    reportType: string;
-    description: string;
-    uploadedAt: string;
-  }>>([])
   const [selectedFile, setSelectedFile] = useState<{
     url: string;
     type: 'image' | 'pdf';
     name: string;
   } | null>(null)
-  const [reportType, setReportType] = useState<string>('')
-  const [reportDescription, setReportDescription] = useState<string>('')
+  const [otherReportType, setOtherReportType] = useState('')
 
   useEffect(() => {
     // Simulated data - replace with actual API call
@@ -226,61 +213,6 @@ export default function DetailedVisitView({
       setLoading(false)
     }, 1000)
   }, [params.visitId])
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedFiles(e.target.files)
-  }
-
-  const handleDeleteFile = async (fileId: string) => {
-    try {
-      setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
-    } catch (error) {
-      console.error('Error deleting file:', error);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFiles || !reportType) return;
-
-    setUploading(true);
-    try {
-      // Simulate file upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Add uploaded files to state with unique IDs
-      const newFiles = Array.from(selectedFiles).map(file => ({
-        id: Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        url: URL.createObjectURL(file),
-        type: file.type.startsWith('image/') ? 'image' : 'pdf',
-        reportType,
-        description: reportDescription,
-        uploadedAt: new Date().toISOString()
-      })) as Array<{
-        id: string;
-        name: string;
-        url: string;
-        type: "image" | "pdf";
-        reportType: string;
-        description: string;
-        uploadedAt: string;
-      }>;
-      
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      
-      // Reset form
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      setSelectedFiles(null);
-      setReportType('');
-      setReportDescription('');
-    } catch (error) {
-      console.error('Upload failed:', error);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -429,139 +361,6 @@ export default function DetailedVisitView({
           </div>
         </div>
 
-        {/* Upload Test Reports Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-[#0D6C7E]">Upload Test Reports</h2>
-            {uploading && (
-              <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 border-2 border-[#0D6C7E] border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-[#0D6C7E]">Uploading...</span>
-              </div>
-            )}
-          </div>
-
-          {/* Report Type Selection */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#04282E] mb-2">
-              Report Type
-            </label>
-            <select
-              value={reportType}
-              onChange={(e) => setReportType(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              required
-            >
-              <option value="">Select Report Type</option>
-              <option value="Blood Test">Blood Test</option>
-              <option value="X-Ray">X-Ray</option>
-              <option value="MRI">MRI</option>
-              <option value="CT Scan">CT Scan</option>
-              <option value="Ultrasound">Ultrasound</option>
-              <option value="ECG">ECG</option>
-              <option value="EEG">EEG</option>
-              <option value="Endoscopy">Endoscopy</option>
-              <option value="Biopsy">Biopsy</option>
-              <option value="Urine Test">Urine Test</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          {/* Description Field */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#04282E] mb-2">
-              Description
-            </label>
-            <textarea
-              value={reportDescription}
-              onChange={(e) => setReportDescription(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              rows={3}
-              placeholder="Enter report description or additional notes"
-            />
-          </div>
-
-          {/* File Upload Section */}
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-              <div className="flex flex-col items-center">
-                <svg
-                  className="w-12 h-12 text-gray-400 mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-                <p className="text-[#04282E] mb-2">Drag and drop files here, or</p>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  multiple
-                  accept="image/*,.pdf"
-                  className="hidden"
-                  id="file-upload"
-                  disabled={!reportType} // Disable if no report type selected
-                />
-                <label
-                  htmlFor="file-upload"
-                  className={`cursor-pointer px-4 py-2 rounded-lg transition-colors duration-200 ${
-                    reportType 
-                      ? 'bg-[#0D6C7E] text-white hover:bg-[#0A5A6A]' 
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  Browse Files
-                </label>
-                {!reportType && (
-                  <p className="text-red-500 text-sm mt-2">
-                    Please select a report type first
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {selectedFiles && selectedFiles.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium text-[#0D6C7E]">Selected Files:</h3>
-                <ul className="ml-4 space-y-1">
-                  {Array.from(selectedFiles).map((file, index) => (
-                    <li key={index} className="text-[#04282E] flex items-center space-x-2">
-                      <svg
-                        className="w-5 h-5 text-green-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>{file.name}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className="mt-4 bg-[#0D6C7E] text-white px-4 py-2 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Upload Files
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Display Uploaded Reports and Images */}
         {visitData.testReports.map((report, index) => (
           report.images && report.images.length > 0 && (
@@ -661,71 +460,6 @@ export default function DetailedVisitView({
             </button>
           </div>
         </div>
-
-        {/* Display Uploaded Files with Delete Option */}
-        {uploadedFiles.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2 mt-6">
-            <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Uploaded Files</h2>
-            <div className="space-y-4">
-              {uploadedFiles.map((file) => (
-                <div 
-                  key={file.id} 
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
-                >
-                  <div className="flex items-center space-x-4">
-                    <svg
-                      className="w-8 h-8 text-[#0D6C7E]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                    </svg>
-                    
-                    <div>
-                      <span className="text-black font-medium">{file.name}</span>
-                      <div className="text-sm text-gray-500">
-                        <p>Type: {file.reportType}</p>
-                        {file.description && <p>Description: {file.description}</p>}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDeleteFile(file.id)}
-                    className="flex items-center space-x-1 text-red-600 hover:text-red-700 transition-colors duration-200"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span className="text-sm font-medium">Delete</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Confirmation Dialog for Delete */}
-            <div className="mt-4 text-sm text-gray-500">
-              <p>* Files can be deleted only before saving the record</p>
-            </div>
-          </div>
-        )}
 
         {/* Previous Test Reports Viewer */}
         <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
