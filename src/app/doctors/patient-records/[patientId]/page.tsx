@@ -28,6 +28,12 @@ interface AppointmentUpdate {
   };
 }
 
+interface AppointmentStatus {
+  id: string;
+  status: 'ongoing' | 'completed';
+  appointmentTime: string;
+}
+
 export default function PatientRecords({ params }: { params: { patientId: string } }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -69,6 +75,12 @@ export default function PatientRecords({ params }: { params: { patientId: string
       temperature: ''
     }
   })
+  const [message, setMessage] = useState('')
+  const [appointment, setAppointment] = useState<AppointmentStatus>({
+    id: '1',
+    status: 'ongoing',
+    appointmentTime: '10:30 AM'
+  })
 
   const getVitalColor = (type: string, value: string) => {
     switch (type) {
@@ -86,27 +98,44 @@ export default function PatientRecords({ params }: { params: { patientId: string
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Add your API call here to save the appointment update
     
-    // Add new record to the list
-    setRecords(prev => [{
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      ...updateForm
-    }, ...prev])
+    try {
+      // Add new record
+      setRecords(prev => [{
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        ...updateForm
+      }, ...prev])
 
-    // Reset form and close update panel
-    setIsUpdating(false)
-    setUpdateForm({
-      diagnosis: '',
-      prescription: '',
-      notes: '',
-      vitals: {
-        bloodPressure: '',
-        heartRate: '',
-        temperature: ''
-      }
-    })
+      // Update appointment status
+      setAppointment(prev => ({
+        ...prev,
+        status: 'completed'
+      }))
+
+      // Show success message
+      setMessage('Appointment completed successfully')
+
+      // Reset form and close update panel
+      setIsUpdating(false)
+      setUpdateForm({
+        diagnosis: '',
+        prescription: '',
+        notes: '',
+        vitals: {
+          bloodPressure: '',
+          heartRate: '',
+          temperature: ''
+        }
+      })
+
+      // Redirect to dashboard after 2 seconds
+      setTimeout(() => {
+        router.push('/doctors/dashboard')
+      }, 2000)
+    } catch (error) {
+      setMessage('Error updating appointment')
+    }
   }
 
   return (
@@ -136,20 +165,42 @@ export default function PatientRecords({ params }: { params: { patientId: string
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
+          {message && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              message.includes('Error') 
+                ? 'bg-red-50 border-l-4 border-red-500 text-red-700'
+                : 'bg-green-50 border-l-4 border-green-500 text-green-700'
+            }`}>
+              <p className="font-medium">{message}</p>
+            </div>
+          )}
+
           <div className="mb-8 border-b border-[#E0E0E0] pb-4 flex justify-between items-center">
             <div>
               <h2 className="text-3xl font-bold text-[#0D6C7E]">{patientName}</h2>
               <p className="text-[#04282E] mt-2 text-lg">
                 Patient ID: <span className="font-medium">{params.patientId}</span>
               </p>
+              <p className="text-[#04282E] mt-1">
+                Appointment Time: <span className="font-medium">{appointment.appointmentTime}</span>
+                <span className={`ml-3 px-3 py-1 rounded-full text-sm font-medium ${
+                  appointment.status === 'completed' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                </span>
+              </p>
             </div>
-            <button
-              onClick={() => setIsUpdating(true)}
-              className="bg-[#0D6C7E] text-white px-6 py-3 rounded-lg hover:bg-[#08505D] 
-                       transition-colors duration-200 flex items-center space-x-2"
-            >
-              <span>Update Current Visit</span>
-            </button>
+            {appointment.status === 'ongoing' && (
+              <button
+                onClick={() => setIsUpdating(true)}
+                className="bg-[#0D6C7E] text-white px-6 py-3 rounded-lg hover:bg-[#08505D] 
+                         transition-colors duration-200 flex items-center space-x-2"
+              >
+                <span>Update Current Visit</span>
+              </button>
+            )}
           </div>
 
           {isUpdating && (
