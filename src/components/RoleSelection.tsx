@@ -9,8 +9,10 @@ const RoleSelection = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (role) {
-      router.push(`/${role.toLowerCase()}`)
+    if (role === 'Doctor') {
+      router.push('/doctors/login')
+    } else if (role === 'Admin') {
+      router.push('/admin/login')
     }
   }
 
