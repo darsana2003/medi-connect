@@ -40,7 +40,7 @@ interface VisitDetail {
   allergies: {
     medications: string[];
     food: string[];
-    other: string[];
+    other: string;
   };
   prescription: {
     medications: Array<{
@@ -146,7 +146,7 @@ export default function DetailedVisitView({
       allergies: {
         medications: ["Penicillin", "Sulfa drugs"],
         food: ["Peanuts"],
-        other: ["Dust", "Pollen"]
+        other: "Dust, Pollen"
       },
       prescription: {
         medications: [
@@ -236,12 +236,24 @@ export default function DetailedVisitView({
     <div className="min-h-screen bg-[#F4F4F4] p-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-[#0D6C7E]">Visit Details</h1>
+        <div className="flex items-center space-x-4">
+          <div className="relative w-[40px] h-[40px] flex-shrink-0">
+            <Image
+              src="/medib.png"
+              alt="MediConnect Logo"
+              fill
+              sizes="40px"
+              className="object-contain"
+              priority
+            />
+          </div>
+          <h1 className="text-3xl font-bold text-[#0D6C7E]">Visit Details</h1>
+        </div>
         <Link 
           href={`/doctors/patient-records/${params.patientId}`}
           className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
         >
-          Back to Patient Record
+          Back to Records
         </Link>
       </div>
 
@@ -330,11 +342,7 @@ export default function DetailedVisitView({
             </div>
             <div>
               <h3 className="text-lg font-medium text-[#0D6C7E] mb-2">Other</h3>
-              <ul className="ml-4 list-disc text-black">
-                {visitData.allergies.other.map((allergy, index) => (
-                  <li key={index}>{allergy}</li>
-                ))}
-              </ul>
+              <p className="ml-4 text-black">{visitData.allergies.other}</p>
             </div>
           </div>
         </div>

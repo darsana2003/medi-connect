@@ -121,19 +121,19 @@ export default function DoctorSignUp() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
-      <div className="max-w-2xl w-full mx-4">
-        <div className="text-center mb-8">
-          <div className="w-32 h-32 mx-auto mb-4">
+      <div className="max-w-md w-full mx-4">
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-[80px] h-[80px] flex-shrink-0">
             <Image
-              src="/medib.jpg"
+              src="/medib.png"
               alt="MediConnect Logo"
-              width={128}
-              height={128}
-              className="w-full h-full object-contain"
+              fill
+              sizes="80px"
+              className="object-contain"
+              priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-[#0D6C7E]">Doctor Registration</h1>
-          <p className="text-[#04282E] mt-2">Create your account</p>
+          <h1 className="text-3xl font-bold text-[#0D6C7E]">Doctor Sign Up</h1>
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow-lg border border-[#E0E0E0]">

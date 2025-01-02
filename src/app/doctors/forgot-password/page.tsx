@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 
-export default function DoctorForgotPassword() {
+export default function ForgotPassword() {
   const router = useRouter()
   const [step, setStep] = useState<'verification' | 'otp' | 'newPassword'>('verification')
   const [formData, setFormData] = useState({
@@ -74,18 +75,18 @@ export default function DoctorForgotPassword() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
       <div className="max-w-md w-full mx-4">
-        <div className="text-center mb-8">
-          <div className="w-32 h-32 mx-auto mb-4">
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-[80px] h-[80px] flex-shrink-0">
             <Image
-              src="/medib.jpg"
+              src="/medib.png"
               alt="MediConnect Logo"
-              width={128}
-              height={128}
-              className="w-full h-full object-contain"
+              fill
+              sizes="80px"
+              className="object-contain"
+              priority
             />
           </div>
           <h1 className="text-3xl font-bold text-[#0D6C7E]">Reset Password</h1>
-          <p className="text-[#04282E] mt-2">Doctor Account Recovery</p>
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow-lg border border-[#E0E0E0]">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Visit {
   date: string;
@@ -86,7 +87,19 @@ export default function PatientRecordPage({ params }: { params: { patientId: str
     <div className="min-h-screen bg-[#F4F4F4] p-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-[#0D6C7E]">Patient Record</h1>
+        <div className="flex items-center space-x-4">
+          <div className="relative w-[40px] h-[40px] flex-shrink-0">
+            <Image
+              src="/medib.png"
+              alt="MediConnect Logo"
+              fill
+              sizes="40px"
+              className="object-contain"
+              priority
+            />
+          </div>
+          <h1 className="text-3xl font-bold text-[#0D6C7E]">Patient Record</h1>
+        </div>
         <Link 
           href="/doctors/dashboard"
           className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"

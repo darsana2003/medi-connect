@@ -39,18 +39,15 @@ export default function DoctorLogin() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
       <div className="max-w-md w-full mx-4">
-        <div className="text-center mb-8">
-          <div className="w-32 h-32 mx-auto mb-4">
-            <Image
-              src="/medib.jpg"
-              alt="MediConnect Logo"
-              width={128}
-              height={128}
-              className="w-full h-full object-contain"
-            />
-          </div>
+        <div className="flex flex-col items-center mb-8">
+          <Image
+            src="/medib.png"
+            alt="MediConnect Logo"
+            width={80}
+            height={80}
+            className="object-contain mb-4"
+          />
           <h1 className="text-3xl font-bold text-[#0D6C7E]">Doctor Login</h1>
-          <p className="text-[#04282E] mt-2">Please enter your credentials</p>
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow-lg border border-[#E0E0E0]">

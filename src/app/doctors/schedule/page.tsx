@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 
 interface Appointment {
@@ -10,7 +11,7 @@ interface Appointment {
   patientName: string;
   time: string;
   reason: string;
-  status: 'upcoming' | 'completed' | 'cancelled' | 'missed';
+  status: 'upcoming' | 'completed' | 'cancelled' | 'missed' | 'rescheduled';
   date: string;
 }
 
@@ -35,6 +36,24 @@ export default function UpdateSchedule() {
       date: '2024-03-20',
       reason: 'Follow-up',
       status: 'upcoming'
+    },
+    {
+      id: '3',
+      patientId: 'P003',
+      patientName: 'Carol White',
+      time: '02:00 PM',
+      date: '2024-03-20',
+      reason: 'Consultation',
+      status: 'upcoming'
+    },
+    {
+      id: '4',
+      patientId: 'P004',
+      patientName: 'David Brown',
+      time: '03:30 PM',
+      date: '2024-03-20',
+      reason: 'Follow-up',
+      status: 'cancelled'
     }
   ])
 
@@ -62,6 +81,8 @@ export default function UpdateSchedule() {
         return 'bg-red-100 text-red-800'
       case 'missed':
         return 'bg-yellow-100 text-yellow-800'
+      case 'rescheduled':
+        return 'bg-purple-100 text-purple-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -82,7 +103,7 @@ export default function UpdateSchedule() {
           ...apt,
           date: newDate,
           time: newTime,
-          status: 'upcoming'
+          status: 'rescheduled'
         }
       }
       return apt
@@ -96,6 +117,21 @@ export default function UpdateSchedule() {
     setTimeout(() => setMessage(''), 3000)
   }
 
+  const handleCancelAppointment = (appointmentId: string) => {
+    setAppointments(prev => prev.map(apt => {
+      if (apt.id === appointmentId) {
+        return {
+          ...apt,
+          status: 'cancelled'
+        }
+      }
+      return apt
+    }))
+
+    setMessage('Appointment cancelled successfully')
+    setTimeout(() => setMessage(''), 3000)
+  }
+
   const availableTimeSlots = [
     '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', 
     '11:00 AM', '11:30 AM', '02:00 PM', '02:30 PM',
@@ -104,27 +140,35 @@ export default function UpdateSchedule() {
 
   return (
     <div className="min-h-screen bg-[#F4F4F4]">
-      <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <Image
-              src="/medib.jpg"
-              alt="MediConnect Logo"
-              width={48}
-              height={48}
-              className="h-12 w-12 object-contain"
-            />
-            <h1 className="ml-4 text-2xl font-bold text-[#0D6C7E]">Update Schedule</h1>
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="relative w-[40px] h-[40px] flex-shrink-0">
+                <Image
+                  src="/medib.png"
+                  alt="MediConnect Logo"
+                  fill
+                  sizes="40px"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <h1 className="text-2xl font-bold text-[#0D6C7E]">Update Schedule</h1>
+            </div>
+            
+            <Link 
+              href="/doctors/dashboard"
+              className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
+            >
+              Back to Dashboard
+            </Link>
           </div>
-          <button
-            onClick={() => router.back()}
-            className="text-[#0D6C7E] hover:text-[#08505D] font-medium"
-          >
-            Back to Dashboard
-          </button>
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
           {message && (
@@ -224,6 +268,175 @@ export default function UpdateSchedule() {
                 </div>
               </div>
             )}
+
+            {/* Rescheduled Appointments */}
+            <div>
+              <h3 className="text-xl font-semibold text-[#0D6C7E] mb-4">Rescheduled Appointments</h3>
+              <div className="space-y-4">
+                {appointments.filter(apt => apt.status === 'rescheduled').map((appointment) => (
+                  <div 
+                    key={appointment.id}
+                    className="bg-white rounded-lg border border-[#E0E0E0] p-4 flex justify-between items-center"
+                  >
+                    <div>
+                      <h4 className="font-medium text-[#04282E]">{appointment.patientName}</h4>
+                      <p className="text-sm text-[#ADADAD]">{appointment.reason}</p>
+                      <p className="text-sm text-[#04282E]">
+                        Rescheduled for: {appointment.date} at {appointment.time}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
+                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                      </span>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleReschedule(appointment)}
+                          className="px-4 py-2 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D] 
+                                   transition-colors duration-200"
+                        >
+                          Reschedule Again
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to cancel this appointment?')) {
+                              handleCancelAppointment(appointment.id)
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 
+                                   transition-colors duration-200"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Other Appointments */}
+            <div>
+              <h3 className="text-xl font-semibold text-[#0D6C7E] mb-4">Other Appointments</h3>
+              
+              {/* Upcoming Appointments */}
+              <div className="mb-6">
+                <h4 className="text-lg font-medium text-[#04282E] mb-3">Upcoming Appointments</h4>
+                <div className="space-y-4">
+                  {appointments
+                    .filter(apt => apt.status === 'upcoming')
+                    .map((appointment) => (
+                      <div 
+                        key={appointment.id}
+                        className="bg-white rounded-lg border border-[#E0E0E0] p-4 flex justify-between items-center"
+                      >
+                        <div>
+                          <h4 className="font-medium text-[#04282E]">{appointment.patientName}</h4>
+                          <p className="text-sm text-[#ADADAD]">{appointment.reason}</p>
+                          <p className="text-sm text-[#04282E]">
+                            Scheduled for: {appointment.date} at {appointment.time}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
+                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                          </span>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleReschedule(appointment)}
+                              className="px-4 py-2 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D] 
+                                       transition-colors duration-200"
+                            >
+                              Reschedule
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('Are you sure you want to cancel this appointment?')) {
+                                  handleCancelAppointment(appointment.id)
+                                }
+                              }}
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 
+                                       transition-colors duration-200"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Completed Appointments */}
+              <div className="mb-6">
+                <h4 className="text-lg font-medium text-[#04282E] mb-3">Completed Appointments</h4>
+                <div className="space-y-4">
+                  {appointments
+                    .filter(apt => apt.status === 'completed')
+                    .map((appointment) => (
+                      <div 
+                        key={appointment.id}
+                        className="bg-white rounded-lg border border-[#E0E0E0] p-4 flex justify-between items-center"
+                      >
+                        <div>
+                          <h4 className="font-medium text-[#04282E]">{appointment.patientName}</h4>
+                          <p className="text-sm text-[#ADADAD]">{appointment.reason}</p>
+                          <p className="text-sm text-[#04282E]">
+                            Completed on: {appointment.date} at {appointment.time}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
+                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                          </span>
+                          <button
+                            onClick={() => handleReschedule(appointment)}
+                            className="px-4 py-2 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D] 
+                                     transition-colors duration-200"
+                          >
+                            Reschedule
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Cancelled/Missed Appointments */}
+              <div>
+                <h4 className="text-lg font-medium text-[#04282E] mb-3">Cancelled/Missed Appointments</h4>
+                <div className="space-y-4">
+                  {appointments
+                    .filter(apt => apt.status === 'cancelled' || apt.status === 'missed')
+                    .map((appointment) => (
+                      <div 
+                        key={appointment.id}
+                        className="bg-white rounded-lg border border-[#E0E0E0] p-4 flex justify-between items-center"
+                      >
+                        <div>
+                          <h4 className="font-medium text-[#04282E]">{appointment.patientName}</h4>
+                          <p className="text-sm text-[#ADADAD]">{appointment.reason}</p>
+                          <p className="text-sm text-[#04282E]">
+                            Originally scheduled for: {appointment.date} at {appointment.time}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
+                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                          </span>
+                          <button
+                            onClick={() => handleReschedule(appointment)}
+                            className="px-4 py-2 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D] 
+                                     transition-colors duration-200"
+                          >
+                            Reschedule
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>

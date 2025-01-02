@@ -262,7 +262,19 @@ export default function NewVisit({ params }: { params: { patientId: string } }) 
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-[#0D6C7E]">New Visit</h1>
+          <div className="flex items-center space-x-4">
+            <div className="relative w-[40px] h-[40px] flex-shrink-0">
+              <Image
+                src="/medib.png"
+                alt="MediConnect Logo"
+                fill
+                sizes="40px"
+                className="object-contain"
+                priority
+              />
+            </div>
+            <h1 className="text-3xl font-bold text-[#0D6C7E]">New Visit</h1>
+          </div>
           <Link 
             href={`/doctors/patient-records/${params.patientId}`}
             className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
