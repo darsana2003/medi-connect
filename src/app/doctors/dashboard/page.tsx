@@ -177,6 +177,7 @@ export default function DoctorDashboard() {
               <span>Update Schedule</span>
             </button>
             <button
+              onClick={() => router.push('/doctors/settings')}
               className="p-4 bg-[#04282E] hover:bg-[#031D22] text-white rounded-lg 
                        transition-colors duration-200 flex items-center justify-center space-x-2"
             >
