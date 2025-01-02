@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface VisitDetail {
   date: string;
@@ -59,6 +60,18 @@ interface VisitDetail {
   }>;
 }
 
+interface TestReport {
+  name: string;
+  date: string;
+  result: string;
+  normalRange?: string;
+  notes?: string;
+  images?: Array<{
+    url: string;
+    caption: string;
+  }>;
+}
+
 export default function DetailedVisitView({ 
   params 
 }: { 
@@ -67,6 +80,9 @@ export default function DetailedVisitView({
   const router = useRouter()
   const [visitData, setVisitData] = useState<VisitDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     // Simulated data - replace with actual API call
@@ -158,6 +174,31 @@ export default function DetailedVisitView({
       setLoading(false)
     }, 1000)
   }, [params.visitId])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedFiles(e.target.files)
+  }
+
+  const handleUpload = async () => {
+    if (!selectedFiles) return
+
+    setUploading(true)
+    // Implement your file upload logic here
+    // This is a placeholder for the actual upload functionality
+    try {
+      // Simulated upload delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      console.log('Files uploaded:', selectedFiles)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      setSelectedFiles(null)
+    } catch (error) {
+      console.error('Upload failed:', error)
+    } finally {
+      setUploading(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -303,6 +344,188 @@ export default function DetailedVisitView({
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Upload Test Reports Section */}
+        <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-[#0D6C7E]">Upload Test Reports</h2>
+            {uploading && (
+              <div className="flex items-center space-x-2">
+                <div className="w-5 h-5 border-2 border-[#0D6C7E] border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-[#0D6C7E]">Uploading...</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <div className="flex flex-col items-center">
+                <svg
+                  className="w-12 h-12 text-gray-400 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+                <p className="text-[#04282E] mb-2">Drag and drop files here, or</p>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  multiple
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="cursor-pointer bg-[#0D6C7E] text-white px-4 py-2 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200"
+                >
+                  Browse Files
+                </label>
+              </div>
+            </div>
+
+            {selectedFiles && selectedFiles.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium text-[#0D6C7E]">Selected Files:</h3>
+                <ul className="ml-4 space-y-1">
+                  {Array.from(selectedFiles).map((file, index) => (
+                    <li key={index} className="text-[#04282E] flex items-center space-x-2">
+                      <svg
+                        className="w-5 h-5 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <span>{file.name}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={handleUpload}
+                  disabled={uploading}
+                  className="mt-4 bg-[#0D6C7E] text-white px-4 py-2 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Upload Files
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Display Uploaded Reports and Images */}
+        {visitData.testReports.map((report, index) => (
+          report.images && report.images.length > 0 && (
+            <div key={`images-${index}`} className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+              <h3 className="text-lg font-medium text-[#0D6C7E] mb-4">{report.name} - Images</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {report.images.map((image, imgIndex) => (
+                  <div key={imgIndex} className="relative">
+                    <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
+                      <Image
+                        src={image.url}
+                        alt={image.caption}
+                        layout="fill"
+                        objectFit="cover"
+                        className="hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                    <p className="mt-2 text-sm text-[#04282E]">{image.caption}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        ))}
+
+        {/* Add this new Prescription Card after Test Reports */}
+        <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+          <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Prescription</h2>
+          <div className="space-y-4">
+            {visitData.prescription.medications.map((medication, index) => (
+              <div key={index} className="border-b border-gray-200 last:border-0 pb-4 last:pb-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <h3 className="text-lg font-medium text-[#0D6C7E] mb-2">
+                      {medication.name}
+                    </h3>
+                    <div className="ml-4 space-y-1">
+                      <p className="text-[#04282E] font-medium">
+                        Dosage: <span className="text-black">{medication.dosage}</span>
+                      </p>
+                      <p className="text-[#04282E] font-medium">
+                        Frequency: <span className="text-black">{medication.frequency}</span>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-[#04282E] font-medium">
+                      Duration: <span className="text-black">{medication.duration}</span>
+                    </p>
+                    <p className="text-[#04282E] font-medium">
+                      Instructions: <span className="text-black">{medication.instructions}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <svg 
+                      className="w-5 h-5 text-[#0D6C7E]" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span className="text-sm text-[#0D6C7E]">Prescribed</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Download/Print Prescription Button */}
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={() => window.print()}
+              className="flex items-center space-x-2 bg-[#0D6C7E] text-white px-4 py-2 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200"
+            >
+              <svg 
+                className="w-5 h-5" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              <span>Download Prescription</span>
+            </button>
           </div>
         </div>
       </div>
