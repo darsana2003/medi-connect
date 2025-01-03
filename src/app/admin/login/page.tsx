@@ -39,41 +39,41 @@ export default function AdminLogin() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+            <div>
             <label htmlFor="hospitalName" className="block text-sm font-medium text-gray-700">
-              Hospital Name
-            </label>
-            <input
-              type="text"
-              id="hospitalName"
-              value={hospitalName}
-              onChange={(e) => setHospitalName(e.target.value)}
+                Hospital Name
+              </label>
+              <input
+                type="text"
+                id="hospitalName"
+                value={hospitalName}
+                onChange={(e) => setHospitalName(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Enter your hospital name"
-              required
-            />
-          </div>
+                placeholder="Enter your hospital name"
+                required
+              />
+            </div>
 
-          <div>
+            <div>
             <label htmlFor="adminId" className="block text-sm font-medium text-gray-700">
-              Admin ID
-            </label>
-            <input
-              type="text"
-              id="adminId"
-              value={adminId}
-              onChange={(e) => setAdminId(e.target.value)}
+                Admin ID
+              </label>
+              <input
+                type="text"
+                id="adminId"
+                value={adminId}
+                onChange={(e) => setAdminId(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Enter your Admin ID (e.g., ADMIN123)"
-              required
-            />
+                placeholder="Enter your Admin ID (e.g., ADMIN123)"
+                required
+              />
             <p className="mt-1 text-sm text-gray-500">Example ID: ADMIN123</p>
-          </div>
+            </div>
 
-          <div>
+            <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
+                Password
+              </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -101,24 +101,24 @@ export default function AdminLogin() {
             </div>
           )}
 
-          <button
-            type="submit"
+            <button
+              type="submit"
             className="w-full bg-[#0D6C7E] text-white py-2 px-4 rounded-md hover:bg-[#0A5A6B] focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:ring-offset-2"
-          >
-            Login
-          </button>
-        </form>
+            >
+              Login
+            </button>
+          </form>
 
         <div className="mt-4 text-center">
           <Link href="/admin/forgot-password" className="text-[#0D6C7E] hover:underline">
-            Forgot password?
+              Forgot password?
           </Link>
         </div>
 
         <div className="mt-4 text-center">
           <span className="text-gray-600">New admin? </span>
           <Link href="/admin/register" className="text-[#0D6C7E] hover:underline">
-            Create an account
+                Create an account
           </Link>
         </div>
       </div>

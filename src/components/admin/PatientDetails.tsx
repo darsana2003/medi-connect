@@ -5,7 +5,7 @@ export default function PatientDetails({ patient, onClose }: { patient: any, onC
     <>
       {/* Overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose}></div>
-      
+
       {/* Modal */}
       <div className="fixed inset-0 z-50 overflow-y-auto">
         <div className="flex min-h-screen items-center justify-center p-4">

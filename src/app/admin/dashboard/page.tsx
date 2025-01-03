@@ -7,12 +7,13 @@ import Patients from '@/components/admin/Patients'
 import Doctors from '@/components/admin/Doctors'
 import Departments from '@/components/admin/Departments'
 import Analytics from '@/components/admin/Analytics'
+import Appointments from '@/components/admin/Appointments'
 
-type TabType = 'requests' | 'patients' | 'doctors' | 'departments' | 'analytics'
+type TabType = 'appointments' | 'requests' | 'patients' | 'doctors' | 'departments' | 'analytics'
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<TabType>('requests')
-  
+  const [activeTab, setActiveTab] = useState<TabType>('appointments')
+
   const adminName = "Jacob Mathew" // Changed from "Dr. John Doe"
   const adminEmail = "jacob.mathew@hospital.com" // Updated email to match new name
 
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-gray-500">{adminEmail}</p>
               </div>
             </div>
-            
+
             <button className="text-gray-500 hover:text-gray-700">
               <Image src="/settings.svg" alt="Settings" width={24} height={24} />
             </button>
@@ -46,6 +47,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[
+              { id: 'appointments', name: 'Appointments' },
               { id: 'requests', name: 'Incoming Requests' },
               { id: 'patients', name: 'Patients' },
               { id: 'doctors', name: 'Doctors' },
@@ -55,11 +57,10 @@ export default function AdminDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-[#0D6C7E] text-[#0D6C7E]'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
+                  ? 'border-[#0D6C7E] text-[#0D6C7E]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
               >
                 {tab.name}
               </button>
@@ -70,6 +71,7 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'appointments' && <Appointments />}
         {activeTab === 'requests' && <IncomingRequests />}
         {activeTab === 'patients' && <Patients />}
         {activeTab === 'doctors' && <Doctors />}
