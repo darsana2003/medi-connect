@@ -1,422 +1,180 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 
-interface PatientRecord {
-  id: string;
+interface Visit {
   date: string;
   diagnosis: string;
   prescription: string;
-  notes: string;
-  vitals: {
-    bloodPressure: string;
-    heartRate: string;
-    temperature: string;
-  };
+  bloodPressure: string;
+  heartRate: string;
+  temperature: string;
 }
 
-interface AppointmentUpdate {
-  diagnosis: string;
-  prescription: string;
-  notes: string;
-  vitals: {
-    bloodPressure: string;
-    heartRate: string;
-    temperature: string;
-  };
-}
-
-interface AppointmentStatus {
+interface PatientRecord {
   id: string;
-  status: 'ongoing' | 'completed';
-  appointmentTime: string;
+  name: string;
+  age: number;
+  gender: string;
+  contact: string;
+  medicalHistory: string;
+  visits: Visit[];
 }
 
-export default function PatientRecords({ params }: { params: { patientId: string } }) {
+export default function PatientRecordPage({ params }: { params: { patientId: string } }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const patientName = searchParams.get('name') || 'Patient'
-  const [records, setRecords] = useState<PatientRecord[]>([
-    {
-      id: '1',
-      date: '2024-03-15',
-      diagnosis: 'Common Cold',
-      prescription: 'Paracetamol 500mg - 1 tablet every 6 hours\nVitamin C 500mg - 1 tablet daily',
-      notes: 'Patient reported fever and sore throat for 2 days. Follow-up recommended after 3 days if symptoms persist.',
-      vitals: {
-        bloodPressure: '120/80',
-        heartRate: '72',
-        temperature: '38.2'
-      }
-    },
-    {
-      id: '2',
-      date: '2024-02-28',
-      diagnosis: 'Seasonal Allergies',
-      prescription: 'Cetirizine 10mg - 1 tablet daily\nNasal spray - 2 sprays each nostril twice daily',
-      notes: 'Patient experiencing seasonal allergies. Advised to avoid outdoor activities during high pollen count.',
-      vitals: {
-        bloodPressure: '118/78',
-        heartRate: '76',
-        temperature: '37.0'
-      }
-    }
-  ])
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [updateForm, setUpdateForm] = useState<AppointmentUpdate>({
-    diagnosis: '',
-    prescription: '',
-    notes: '',
-    vitals: {
-      bloodPressure: '',
-      heartRate: '',
-      temperature: ''
-    }
-  })
-  const [message, setMessage] = useState('')
-  const [appointment, setAppointment] = useState<AppointmentStatus>({
-    id: '1',
-    status: 'ongoing',
-    appointmentTime: '10:30 AM'
-  })
+  const [patient, setPatient] = useState<PatientRecord | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const getVitalColor = (type: string, value: string) => {
-    switch (type) {
-      case 'bloodPressure':
-        const [systolic] = value.split('/')
-        return parseInt(systolic) > 140 ? 'text-red-600' : 'text-green-600'
-      case 'heartRate':
-        return parseInt(value) > 100 ? 'text-red-600' : 'text-green-600'
-      case 'temperature':
-        return parseFloat(value) > 37.5 ? 'text-red-600' : 'text-green-600'
-      default:
-        return 'text-[#04282E]'
-    }
+  useEffect(() => {
+    // Simulated patient data - replace with actual API call
+    const mockPatient: PatientRecord = {
+      id: params.patientId,
+      name: "John Doe",
+      age: 45,
+      gender: "Male",
+      contact: "+91 9876543210",
+      medicalHistory: "Diabetes Type 2, Hypertension",
+      visits: [
+        {
+          date: "2024-02-01",
+          diagnosis: "Acute bronchitis",
+          prescription: "Antibiotics - Amoxicillin 500mg\nCough syrup",
+          bloodPressure: "120/80",
+          heartRate: "72",
+          temperature: "37.2"
+        },
+        {
+          date: "2024-01-15",
+          diagnosis: "Regular checkup",
+          prescription: "Metformin 500mg\nAmlodipine 5mg",
+          bloodPressure: "130/85",
+          heartRate: "75",
+          temperature: "36.8"
+        }
+      ]
+    };
+
+    // Simulate API call
+    setTimeout(() => {
+      setPatient(mockPatient)
+      setLoading(false)
+    }, 1000)
+  }, [params.patientId])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F4F4F4] p-8 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#0D6C7E] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
   }
 
-  const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    try {
-      // Add new record
-      setRecords(prev => [{
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        ...updateForm
-      }, ...prev])
-
-      // Update appointment status
-      setAppointment(prev => ({
-        ...prev,
-        status: 'completed'
-      }))
-
-      // Show success message
-      setMessage('Appointment completed successfully')
-
-      // Reset form and close update panel
-      setIsUpdating(false)
-      setUpdateForm({
-        diagnosis: '',
-        prescription: '',
-        notes: '',
-        vitals: {
-          bloodPressure: '',
-          heartRate: '',
-          temperature: ''
-        }
-      })
-
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        router.push('/doctors/dashboard')
-      }, 2000)
-    } catch (error) {
-      setMessage('Error updating appointment')
-    }
+  if (!patient) {
+    return (
+      <div className="min-h-screen bg-[#F4F4F4] p-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">Patient record not found</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F4F4]">
-      <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Image
-                src="/medib.jpg"
-                alt="MediConnect Logo"
-                width={48}
-                height={48}
-                className="h-12 w-12 object-contain"
-              />
-              <h1 className="ml-4 text-2xl font-bold text-[#0D6C7E]">Patient Records</h1>
-            </div>
-            <button
-              onClick={() => router.back()}
-              className="text-[#0D6C7E] hover:text-[#08505D] font-medium"
+    <div className="min-h-screen bg-[#F4F4F4] p-8">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="relative w-[40px] h-[40px] flex-shrink-0">
+            <Image
+              src="/medib.png"
+              alt="MediConnect Logo"
+              fill
+              sizes="40px"
+              className="object-contain"
+              priority
+            />
+          </div>
+          <h1 className="text-3xl font-bold text-[#0D6C7E]">Patient Record</h1>
+        </div>
+        <Link 
+          href="/doctors/dashboard"
+          className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
+
+      {/* Patient Information Card */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Patient Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-[#04282E] font-medium">Name: <span className="font-normal text-black">{patient.name}</span></p>
+            <p className="text-[#04282E] font-medium">Age: <span className="font-normal text-black">{patient.age} years</span></p>
+            <p className="text-[#04282E] font-medium">Gender: <span className="font-normal text-black">{patient.gender}</span></p>
+          </div>
+          <div>
+            <p className="text-[#04282E] font-medium">Contact: <span className="font-normal text-black">{patient.contact}</span></p>
+            <p className="text-[#04282E] font-medium">Medical History: <span className="font-normal text-black">{patient.medicalHistory}</span></p>
+          </div>
+        </div>
+      </div>
+
+      {/* Visit History */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Visit History</h2>
+        <div className="space-y-6">
+          {patient.visits.map((visit, index) => (
+            <div 
+              key={index}
+              className="border-b border-gray-200 last:border-0 pb-6 last:pb-0"
             >
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-      </header>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-[#0D6C7E]">
+                  Visit Date: <span className="text-black">{new Date(visit.date).toLocaleDateString()}</span>
+                </h3>
+                <Link 
+                  href={`/doctors/patient-records/${patient.id}/visits/${visit.date}`}
+                  className="text-sm text-[#0D6C7E] hover:text-[#0A5A6A] font-medium"
+                >
+                  View Details
+                </Link>
+              </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
-          {message && (
-            <div className={`mb-6 p-4 rounded-lg ${
-              message.includes('Error') 
-                ? 'bg-red-50 border-l-4 border-red-500 text-red-700'
-                : 'bg-green-50 border-l-4 border-green-500 text-green-700'
-            }`}>
-              <p className="font-medium">{message}</p>
-            </div>
-          )}
-
-          <div className="mb-8 border-b border-[#E0E0E0] pb-4 flex justify-between items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-[#0D6C7E]">{patientName}</h2>
-              <p className="text-[#04282E] mt-2 text-lg">
-                Patient ID: <span className="font-medium">{params.patientId}</span>
-              </p>
-              <p className="text-[#04282E] mt-1">
-                Appointment Time: <span className="font-medium">{appointment.appointmentTime}</span>
-                <span className={`ml-3 px-3 py-1 rounded-full text-sm font-medium ${
-                  appointment.status === 'completed' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                </span>
-              </p>
-            </div>
-            {appointment.status === 'ongoing' && (
-              <button
-                onClick={() => setIsUpdating(true)}
-                className="bg-[#0D6C7E] text-white px-6 py-3 rounded-lg hover:bg-[#08505D] 
-                         transition-colors duration-200 flex items-center space-x-2"
-              >
-                <span>Update Current Visit</span>
-              </button>
-            )}
-          </div>
-
-          {isUpdating && (
-            <div className="mb-8">
-              <div className="bg-[#F8FAFC] p-6 rounded-xl border-2 border-[#0D6C7E] mb-8">
-                <h3 className="text-xl font-bold text-[#0D6C7E] mb-6">Update Current Visit</h3>
-                <form onSubmit={handleUpdateSubmit} className="space-y-6">
-                  {/* Vitals Section */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-[#04282E] mb-2">
-                        Blood Pressure (mmHg)
-                      </label>
-                      <input
-                        type="text"
-                        value={updateForm.vitals.bloodPressure}
-                        onChange={(e) => setUpdateForm({
-                          ...updateForm,
-                          vitals: { ...updateForm.vitals, bloodPressure: e.target.value }
-                        })}
-                        className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                                 focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                        placeholder="e.g., 120/80"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-[#04282E] mb-2">
-                        Heart Rate (bpm)
-                      </label>
-                      <input
-                        type="number"
-                        value={updateForm.vitals.heartRate}
-                        onChange={(e) => setUpdateForm({
-                          ...updateForm,
-                          vitals: { ...updateForm.vitals, heartRate: e.target.value }
-                        })}
-                        className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                                 focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                        placeholder="e.g., 72"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-[#04282E] mb-2">
-                        Temperature (°C)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={updateForm.vitals.temperature}
-                        onChange={(e) => setUpdateForm({
-                          ...updateForm,
-                          vitals: { ...updateForm.vitals, temperature: e.target.value }
-                        })}
-                        className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                                 focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                        placeholder="e.g., 37.0"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Diagnosis */}
-                  <div>
-                    <label className="block text-sm font-semibold text-[#04282E] mb-2">
-                      Diagnosis
-                    </label>
-                    <input
-                      type="text"
-                      value={updateForm.diagnosis}
-                      onChange={(e) => setUpdateForm({ ...updateForm, diagnosis: e.target.value })}
-                      className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                               focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                      placeholder="Enter diagnosis"
-                      required
-                    />
-                  </div>
-
-                  {/* Prescription */}
-                  <div>
-                    <label className="block text-sm font-semibold text-[#04282E] mb-2">
-                      Prescription
-                    </label>
-                    <textarea
-                      value={updateForm.prescription}
-                      onChange={(e) => setUpdateForm({ ...updateForm, prescription: e.target.value })}
-                      className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                               focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                      placeholder="Enter prescription details (one per line)"
-                      rows={4}
-                      required
-                    />
-                  </div>
-
-                  {/* Notes */}
-                  <div>
-                    <label className="block text-sm font-semibold text-[#04282E] mb-2">
-                      Clinical Notes
-                    </label>
-                    <textarea
-                      value={updateForm.notes}
-                      onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
-                      className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                               focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                      placeholder="Enter clinical notes"
-                      rows={4}
-                      required
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsUpdating(false)}
-                      className="px-6 py-3 border border-[#0D6C7E] text-[#0D6C7E] rounded-lg 
-                               hover:bg-[#F8FAFC] transition-colors duration-200"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-3 bg-[#0D6C7E] text-white rounded-lg 
-                               hover:bg-[#08505D] transition-colors duration-200"
-                    >
-                      Save & Close Appointment
-                    </button>
-                  </div>
-                </form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[#04282E] font-medium">Vital Signs:</p>
+                  <ul className="ml-4 space-y-1 text-black">
+                    <li>Blood Pressure: {visit.bloodPressure}</li>
+                    <li>Heart Rate: {visit.heartRate} bpm</li>
+                    <li>Temperature: {visit.temperature}°C</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-[#04282E] font-medium">Diagnosis:</p>
+                  <p className="ml-4 text-black">{visit.diagnosis}</p>
+                  <p className="text-[#04282E] font-medium mt-2">Prescription:</p>
+                  <p className="ml-4 whitespace-pre-line text-black">{visit.prescription}</p>
+                </div>
               </div>
             </div>
-          )}
-
-          <div className="space-y-8">
-            {records.map((record) => (
-              <div 
-                key={record.id}
-                className="border-2 border-[#E0E0E0] rounded-lg p-6 space-y-6 hover:border-[#0D6C7E] transition-colors duration-200"
-              >
-                <div className="flex justify-between items-start border-b border-[#E0E0E0] pb-4">
-                  <h3 className="text-xl font-bold text-[#0D6C7E]">
-                    Visit Date: {new Date(record.date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-[#F8FAFC] p-6 rounded-xl border-2 border-[#E0E0E0] hover:border-[#0D6C7E] transition-all duration-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-bold text-[#0D6C7E] uppercase tracking-wider">Blood Pressure</p>
-                      <span className="bg-[#0D6C7E] text-white text-xs px-2 py-1 rounded">mmHg</span>
-                    </div>
-                    <p className={`text-4xl font-bold ${getVitalColor('bloodPressure', record.vitals.bloodPressure)}`}>
-                      {record.vitals.bloodPressure}
-                    </p>
-                    <p className="text-xs text-[#ADADAD] mt-2">Normal range: 90/60 - 120/80</p>
-                  </div>
-
-                  <div className="bg-[#F8FAFC] p-6 rounded-xl border-2 border-[#E0E0E0] hover:border-[#0D6C7E] transition-all duration-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-bold text-[#0D6C7E] uppercase tracking-wider">Heart Rate</p>
-                      <span className="bg-[#0D6C7E] text-white text-xs px-2 py-1 rounded">bpm</span>
-                    </div>
-                    <p className={`text-4xl font-bold ${getVitalColor('heartRate', record.vitals.heartRate)}`}>
-                      {record.vitals.heartRate}
-                    </p>
-                    <p className="text-xs text-[#ADADAD] mt-2">Normal range: 60-100</p>
-                  </div>
-
-                  <div className="bg-[#F8FAFC] p-6 rounded-xl border-2 border-[#E0E0E0] hover:border-[#0D6C7E] transition-all duration-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-bold text-[#0D6C7E] uppercase tracking-wider">Temperature</p>
-                      <span className="bg-[#0D6C7E] text-white text-xs px-2 py-1 rounded">°C</span>
-                    </div>
-                    <p className={`text-4xl font-bold ${getVitalColor('temperature', record.vitals.temperature)}`}>
-                      {record.vitals.temperature}
-                    </p>
-                    <p className="text-xs text-[#ADADAD] mt-2">Normal range: 36.1-37.2</p>
-                  </div>
-                </div>
-
-                <div className="space-y-6 bg-white p-6 rounded-lg">
-                  <div>
-                    <h4 className="text-lg font-semibold text-[#0D6C7E] mb-2">Diagnosis</h4>
-                    <p className="text-lg text-[#04282E] bg-[#F8FAFC] p-3 rounded-lg">
-                      {record.diagnosis}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="text-lg font-semibold text-[#0D6C7E] mb-2">Prescription</h4>
-                    <div className="bg-[#F8FAFC] p-3 rounded-lg">
-                      {record.prescription.split('\n').map((line, index) => (
-                        <p key={index} className="text-lg text-[#04282E] mb-2 last:mb-0">
-                          • {line}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-lg font-semibold text-[#0D6C7E] mb-2">Clinical Notes</h4>
-                    <p className="text-lg text-[#04282E] bg-[#F8FAFC] p-3 rounded-lg whitespace-pre-line">
-                      {record.notes}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
-      </main>
+      </div>
+
+      {/* Add New Visit Button */}
+      <div className="mt-6">
+        <Link
+          href={`/doctors/patient-records/${patient.id}/new-visit`}
+          className="inline-block bg-[#0D6C7E] text-white px-6 py-3 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200"
+        >
+          Add New Visit
+        </Link>
+      </div>
     </div>
   )
 } 

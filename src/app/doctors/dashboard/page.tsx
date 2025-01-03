@@ -92,26 +92,29 @@ export default function DoctorDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F4F4F4]">
-      <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <Image
-              src="/medib.jpg"
-              alt="MediConnect Logo"
-              width={48}
-              height={48}
-              className="h-12 w-12 object-contain"
-            />
-            <h1 className="ml-4 text-2xl font-bold text-[#0D6C7E]">MediConnect</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <span className="block text-[#04282E] font-medium">{doctorName}</span>
-              <span className="block text-sm text-[#ADADAD]">{hospitalName}</span>
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="relative w-[40px] h-[40px] flex-shrink-0">
+                <Image
+                  src="/medib.png"
+                  alt="MediConnect Logo"
+                  fill
+                  sizes="40px"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, Dr. John Doe</h1>
+                <p className="text-[#04282E]">City Hospital</p>
+              </div>
             </div>
-            <button 
-              onClick={handleLogout}
-              className="text-[#F4A261] hover:text-[#E76F51] font-medium"
+            
+            <button
+              onClick={() => router.push('/doctors/login')}
+              className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
             >
               Logout
             </button>
@@ -161,10 +164,11 @@ export default function DoctorDashboard() {
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
+              onClick={() => router.push('/doctors/monthly-appointments')}
               className="p-4 bg-[#0D6C7E] hover:bg-[#08505D] text-white rounded-lg 
                        transition-colors duration-200 flex items-center justify-center space-x-2"
             >
-              <span>View All Appointments</span>
+              <span>Monthly Appointments</span>
             </button>
             <button
               onClick={() => router.push('/doctors/schedule')}
@@ -174,6 +178,7 @@ export default function DoctorDashboard() {
               <span>Update Schedule</span>
             </button>
             <button
+              onClick={() => router.push('/doctors/settings')}
               className="p-4 bg-[#04282E] hover:bg-[#031D22] text-white rounded-lg 
                        transition-colors duration-200 flex items-center justify-center space-x-2"
             >

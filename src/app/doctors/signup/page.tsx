@@ -1,479 +1,424 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
-type District = string[];
-
-interface HospitalLocations {
-  [state: string]: {
-    [district: string]: string[];
-  };
-}
-
-interface HospitalSelection {
+interface HospitalInfo {
+  name: string;
   state: string;
   district: string;
-  hospital: string;
-  customHospital: string;
+  location: string;
 }
 
-const hospitalsByLocation: HospitalLocations = {
-  'Karnataka': {
-    'Bangalore': ['Apollo Hospital, Bangalore', 'Manipal Hospital', 'Fortis Hospital', 'Other'],
-    'Mysore': ['Apollo BGS Hospital', 'JSS Hospital', 'Other'],
-    'Mangalore': ['KMC Hospital', 'AJ Hospital', 'Other'],
-    'Hubli': ['KIMS Hospital', 'SDM Hospital', 'Other']
-  },
-  'Tamil Nadu': {
-    'Chennai': ['Apollo Hospital, Chennai', 'Fortis Malar Hospital', 'Global Hospital', 'Other'],
-    'Coimbatore': ['PSG Hospitals', 'Kovai Medical Center', 'Other'],
-    'Madurai': ['Apollo Hospital, Madurai', 'Meenakshi Mission Hospital', 'Other'],
-    'Salem': ['SKS Hospital', 'Manipal Hospital Salem', 'Other']
-  },
-  'Kerala': {
-    'Thiruvananthapuram': ['KIMS Hospital', 'Ananthapuri Hospital', 'SK Hospital', 'Other'],
-    'Kochi': ['Amrita Hospital', 'Lakeshore Hospital', 'Medical Trust Hospital', 'Other'],
-    'Kozhikode': ['MIMS Hospital', 'Baby Memorial Hospital', 'IQRAA Hospital', 'Other'],
-    'Thrissur': ['Jubilee Mission Hospital', 'West Fort Hospital', 'Elite Hospital', 'Other']
-  }
-}
+const statesAndDistricts = {
+  "Kerala": [
+    "Thiruvananthapuram",
+    "Kollam",
+    "Pathanamthitta",
+    "Alappuzha",
+    "Kottayam",
+    "Idukki",
+    "Ernakulam",
+    "Thrissur",
+    "Palakkad",
+    "Malappuram",
+    "Kozhikode",
+    "Wayanad",
+    "Kannur",
+    "Kasaragod"
+  ],
+  "Tamil Nadu": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Salem",
+    "Tiruchirappalli",
+    "Tirunelveli",
+    "Vellore",
+    "Erode",
+    "Thoothukkudi",
+    "Dindigul"
+  ],
+  "Karnataka": [
+    "Bangalore",
+    "Mysore",
+    "Hubli",
+    "Mangalore",
+    "Belgaum",
+    "Gulbarga",
+    "Davanagere",
+    "Bellary",
+    "Shimoga",
+    "Tumkur"
+  ]
+  // Add more states and districts as needed
+};
 
-export default function DoctorSignup() {
-  const router = useRouter()
+export default function DoctorSignUp() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    fullName: '',
+    name: '',
     email: '',
-    phoneNumber: '',
-    doctorId: '',
-    aadhaarNo: '',
-    specialization: '',
-    numberOfHospitals: '1',
     password: '',
-    confirmPassword: ''
-  })
-
-  // Array to store multiple hospital selections
-  const [hospitalSelections, setHospitalSelections] = useState<HospitalSelection[]>([
-    { state: '', district: '', hospital: '', customHospital: '' }
-  ])
-
-  // Handle number of hospitals change
-  const handleNumberOfHospitalsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const num = parseInt(e.target.value)
-    setHospitalSelections(prev => {
-      if (num > prev.length) {
-        return [...prev, ...Array(num - prev.length).fill({ state: '', district: '', hospital: '', customHospital: '' })]
-      }
-      return prev.slice(0, num)
-    })
-    handleChange(e)
-  }
-
-  // Handle hospital selection changes
-  const handleHospitalSelectionChange = (index: number, field: keyof HospitalSelection, value: string) => {
-    setHospitalSelections(prev => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [field]: value }
-      // Reset dependent fields
-      if (field === 'state') {
-        updated[index].district = ''
-        updated[index].hospital = ''
-        updated[index].customHospital = ''
-      } else if (field === 'district') {
-        updated[index].hospital = ''
-        updated[index].customHospital = ''
-      } else if (field === 'hospital' && value !== 'Other') {
-        updated[index].customHospital = ''
-      }
-      return updated
-    })
-  }
-
-  // Get districts for a state
-  const getDistricts = (state: string): string[] => {
-    return state ? Object.keys(hospitalsByLocation[state] || {}) : []
-  }
-
-  // Get hospitals for a district
-  const getHospitals = (state: string, district: string): string[] => {
-    return state && district ? hospitalsByLocation[state]?.[district] || [] : []
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-
-    if (formData.aadhaarNo.length !== 12) {
-      setError('Aadhaar number must be 12 digits')
-      return
-    }
-
-    if (formData.phoneNumber.length !== 10) {
-      setError('Phone number must be 10 digits')
-      return
-    }
-
-    // Add your signup logic here
-    console.log('Signup data:', formData)
-    router.push('/doctors/login')
-  }
+    confirmPassword: '',
+    specialization: '',
+    otherSpecialization: '',
+    medicalId: '',
+    aadhaarNumber: '',
+    numHospitals: 1,
+    hospitals: [] as HospitalInfo[]
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    
-    // Validation for number-only fields
-    if (name === 'aadhaarNo' || name === 'phoneNumber') {
-      if (!/^\d*$/.test(value)) return // Only allow digits
+    const { name, value } = e.target;
+    if (name === 'numHospitals') {
+      const numHospitals = parseInt(value);
+      setFormData(prev => ({
+        ...prev,
+        numHospitals,
+        hospitals: Array(numHospitals).fill({ name: '', state: '', district: '', location: '' })
+      }));
+    } else if (name === 'specialization') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        otherSpecialization: value !== 'Other' ? '' : prev.otherSpecialization
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
+  };
 
-    setFormData({
-      ...formData,
-      [name]: value
-    })
-  }
+  const getDistricts = (state: string) => {
+    return statesAndDistricts[state as keyof typeof statesAndDistricts] || [];
+  };
 
-  // Extended specialization options
-  const specializations = [
-    'Anesthesiology',
-    'Cardiology',
-    'Cardiothoracic Surgery',
-    'Dermatology',
-    'Emergency Medicine',
-    'Endocrinology',
-    'ENT (Otolaryngology)',
-    'Family Medicine',
-    'Gastroenterology',
-    'General Medicine',
-    'General Surgery',
-    'Geriatric Medicine',
-    'Gynecology',
-    'Hematology',
-    'Internal Medicine',
-    'Nephrology',
-    'Neurology',
-    'Neurosurgery',
-    'Nuclear Medicine',
-    'Obstetrics & Gynecology',
-    'Oncology',
-    'Ophthalmology',
-    'Orthopedics',
-    'Pediatrics',
-    'Plastic Surgery',
-    'Psychiatry',
-    'Pulmonology',
-    'Radiology',
-    'Rheumatology',
-    'Urology',
-    'Vascular Surgery'
-  ]
+  const handleHospitalChange = (index: number, field: keyof HospitalInfo, value: string) => {
+    setFormData(prev => {
+      const updatedHospitals = [...prev.hospitals];
+      updatedHospitals[index] = {
+        ...updatedHospitals[index],
+        [field]: value,
+        ...(field === 'state' && { district: '' })
+      };
+      return {
+        ...prev,
+        hospitals: updatedHospitals
+      };
+    });
+  };
 
-  const [error, setError] = useState('')
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    // Add your form submission logic here
+  };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4] py-12">
-      <div className="max-w-4xl w-full mx-4">
-        <div className="text-center mb-8">
-          <div className="w-32 h-32 mx-auto mb-4">
+    <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
+      <div className="max-w-md w-full mx-4">
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-[80px] h-[80px] flex-shrink-0">
             <Image
-              src="/medib.jpg"
+              src="/medib.png"
               alt="MediConnect Logo"
-              width={128}
-              height={128}
-              className="w-full h-full object-contain"
+              fill
+              sizes="80px"
+              className="object-contain"
+              priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-[#0D6C7E]">Doctor Registration</h1>
-          <p className="text-[#04282E] mt-2 text-lg">Create your MediConnect account</p>
+          <h1 className="text-3xl font-bold text-[#0D6C7E]">Doctor Sign Up</h1>
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow-lg border border-[#E0E0E0]">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg">
-              <p className="font-medium">{error}</p>
-            </div>
-          )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 1. Full Name */}
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  required
+                />
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Personal Information Section */}
-            <div className="space-y-6 p-6 bg-[#F8FAFC] rounded-lg border border-[#E0E0E0]">
-              <h2 className="text-xl font-bold text-[#0D6C7E] border-b border-[#E0E0E0] pb-2">
-                Personal Information
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 2. Email */}
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  required
+                />
+              </div>
+
+              {/* 3. Medical ID */}
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Medical ID</label>
+                <input
+                  type="text"
+                  name="medicalId"
+                  value={formData.medicalId}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  placeholder="Enter your Medical ID"
+                  required
+                />
+              </div>
+
+              {/* 4. Aadhaar Number */}
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Aadhaar Number</label>
+                <input
+                  type="text"
+                  name="aadhaarNumber"
+                  value={formData.aadhaarNumber}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  placeholder="Enter your 12-digit Aadhaar number"
+                  pattern="[0-9]{12}"
+                  maxLength={12}
+                  required
+                />
+              </div>
+
+              {/* 5. Specialization */}
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Specialization</label>
+                <select
+                  name="specialization"
+                  value={formData.specialization}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  required
+                >
+                  <option value="">Select Specialization</option>
+                  <option value="General Medicine">General Medicine</option>
+                  <option value="Family Medicine">Family Medicine</option>
+                  <option value="Pediatrics">Pediatrics</option>
+                  <option value="Cardiology">Cardiology</option>
+                  <option value="Dermatology">Dermatology</option>
+                  <option value="Orthopedics">Orthopedics</option>
+                  <option value="Gynecology">Gynecology</option>
+                  <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
+                  <option value="Neurology">Neurology</option>
+                  <option value="Psychiatry">Psychiatry</option>
+                  <option value="Ophthalmology">Ophthalmology</option>
+                  <option value="ENT">ENT (Otolaryngology)</option>
+                  <option value="Dentistry">Dentistry</option>
+                  <option value="General Surgery">General Surgery</option>
+                  <option value="Plastic Surgery">Plastic Surgery</option>
+                  <option value="Cardiac Surgery">Cardiac Surgery</option>
+                  <option value="Neurosurgery">Neurosurgery</option>
+                  <option value="Urology">Urology</option>
+                  <option value="Oncology">Oncology</option>
+                  <option value="Endocrinology">Endocrinology</option>
+                  <option value="Gastroenterology">Gastroenterology</option>
+                  <option value="Pulmonology">Pulmonology</option>
+                  <option value="Nephrology">Nephrology</option>
+                  <option value="Rheumatology">Rheumatology</option>
+                  <option value="Hematology">Hematology</option>
+                  <option value="Infectious Disease">Infectious Disease</option>
+                  <option value="Emergency Medicine">Emergency Medicine</option>
+                  <option value="Anesthesiology">Anesthesiology</option>
+                  <option value="Radiology">Radiology</option>
+                  <option value="Pathology">Pathology</option>
+                  <option value="Physical Medicine">Physical Medicine & Rehabilitation</option>
+                  <option value="Sports Medicine">Sports Medicine</option>
+                  <option value="Pain Management">Pain Management</option>
+                  <option value="Geriatric Medicine">Geriatric Medicine</option>
+                  <option value="Pediatric Surgery">Pediatric Surgery</option>
+                  <option value="Neonatology">Neonatology</option>
+                  <option value="Allergy & Immunology">Allergy & Immunology</option>
+                  <option value="Nuclear Medicine">Nuclear Medicine</option>
+                  <option value="Preventive Medicine">Preventive Medicine</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {/* Add conditional input field for other specialization */}
+              {formData.specialization === 'Other' && (
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Full Name
-                  </label>
+                  <label className="block text-sm font-medium text-[#04282E]">Specify Specialization</label>
                   <input
                     type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
+                    name="otherSpecialization"
+                    value={formData.otherSpecialization}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
+                    className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                              focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium placeholder:text-[#ADADAD]"
-                    placeholder="Enter your full name"
+                             text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                    placeholder="Please specify your specialization"
                     required
                   />
                 </div>
+              )}
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium placeholder:text-[#ADADAD]"
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="phoneNumber" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium placeholder:text-[#ADADAD]"
-                    placeholder="Enter 10-digit number"
-                    maxLength={10}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="aadhaarNo" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Aadhaar Number
-                  </label>
-                  <input
-                    type="text"
-                    id="aadhaarNo"
-                    name="aadhaarNo"
-                    value={formData.aadhaarNo}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium placeholder:text-[#ADADAD]"
-                    placeholder="Enter 12-digit Aadhaar"
-                    maxLength={12}
-                    required
-                  />
-                </div>
+              {/* 6. Number of Hospitals */}
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Number of Hospitals</label>
+                <select
+                  name="numHospitals"
+                  value={formData.numHospitals}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  required
+                >
+                  {[1, 2, 3, 4, 5].map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Professional Information Section */}
-            <div className="space-y-6 p-6 bg-[#F8FAFC] rounded-lg border border-[#E0E0E0]">
-              <h2 className="text-xl font-bold text-[#0D6C7E] border-b border-[#E0E0E0] pb-2">
-                Professional Information
-              </h2>
+            {/* 7. Hospital Information */}
+            {Array.from({ length: formData.numHospitals }).map((_, index) => (
+              <div key={index} className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-[#0D6C7E] mb-4">
+                  Hospital {index + 1}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-[#04282E]">Hospital Name</label>
+                    <input
+                      type="text"
+                      value={formData.hospitals[index]?.name || ''}
+                      onChange={(e) => handleHospitalChange(index, 'name', e.target.value)}
+                      className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                               text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="doctorId" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Doctor ID
-                  </label>
-                  <input
-                    type="text"
-                    id="doctorId"
-                    name="doctorId"
-                    value={formData.doctorId}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium placeholder:text-[#ADADAD]"
-                    placeholder="Enter your Doctor ID"
-                    required
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#04282E]">State</label>
+                    <select
+                      value={formData.hospitals[index]?.state || ''}
+                      onChange={(e) => handleHospitalChange(index, 'state', e.target.value)}
+                      className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                               text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                      required
+                    >
+                      <option value="">Select State</option>
+                      {Object.keys(statesAndDistricts).map((state) => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div>
-                  <label htmlFor="specialization" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Specialization
-                  </label>
-                  <select
-                    id="specialization"
-                    name="specialization"
-                    value={formData.specialization}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium bg-white"
-                    required
-                  >
-                    <option value="">Select Specialization</option>
-                    {specializations.map((spec) => (
-                      <option key={spec} value={spec}>{spec}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Hospital Selection Section */}
-              {hospitalSelections.map((selection, index) => (
-                <div key={index} className="p-4 border border-[#E0E0E0] rounded-lg bg-white">
-                  <h3 className="font-semibold text-[#0D6C7E] mb-4">Hospital {index + 1}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[#04282E]">State</label>
-                      <select
-                        value={selection.state}
-                        onChange={(e) => handleHospitalSelectionChange(index, 'state', e.target.value)}
-                        className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                                 focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                        required
-                      >
-                        <option value="">Select State</option>
-                        {Object.keys(hospitalsByLocation).map(state => (
-                          <option key={state} value={state}>{state}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-[#04282E]">District</label>
-                      <select
-                        value={selection.district}
-                        onChange={(e) => handleHospitalSelectionChange(index, 'district', e.target.value)}
-                        className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                                 focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                        required
-                        disabled={!selection.state}
-                      >
-                        <option value="">Select District</option>
-                        {getDistricts(selection.state).map(district => (
+                  <div>
+                    <label className="block text-sm font-medium text-[#04282E]">District</label>
+                    <select
+                      value={formData.hospitals[index]?.district || ''}
+                      onChange={(e) => handleHospitalChange(index, 'district', e.target.value)}
+                      className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                               text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                      required
+                      disabled={!formData.hospitals[index]?.state}
+                    >
+                      <option value="">Select District</option>
+                      {formData.hospitals[index]?.state &&
+                        getDistricts(formData.hospitals[index].state).map((district) => (
                           <option key={district} value={district}>{district}</option>
                         ))}
-                      </select>
-                    </div>
+                    </select>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-[#04282E]">Hospital</label>
-                      <select
-                        value={selection.hospital}
-                        onChange={(e) => handleHospitalSelectionChange(index, 'hospital', e.target.value)}
-                        className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                                 focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                        required
-                        disabled={!selection.district}
-                      >
-                        <option value="">Select Hospital</option>
-                        {getHospitals(selection.state, selection.district).map(hospital => (
-                          <option key={hospital} value={hospital}>{hospital}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {selection.hospital === 'Other' && (
-                      <div>
-                        <label className="block text-sm font-medium text-[#04282E]">Custom Hospital Name</label>
-                        <input
-                          type="text"
-                          value={selection.customHospital}
-                          onChange={(e) => handleHospitalSelectionChange(index, 'customHospital', e.target.value)}
-                          className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                                   focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                          placeholder="Enter hospital name"
-                          required
-                        />
-                      </div>
-                    )}
+                  <div>
+                    <label className="block text-sm font-medium text-[#04282E]">Detailed Address</label>
+                    <input
+                      type="text"
+                      value={formData.hospitals[index]?.location || ''}
+                      onChange={(e) => handleHospitalChange(index, 'location', e.target.value)}
+                      className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                               text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                      placeholder="Enter detailed address"
+                      required
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
 
-            {/* Password Section */}
-            <div className="space-y-6 p-6 bg-[#F8FAFC] rounded-lg border border-[#E0E0E0]">
-              <h2 className="text-xl font-bold text-[#0D6C7E] border-b border-[#E0E0E0] pb-2">
-                Set Password
-              </h2>
+            {/* 8. Password Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  required
+                />
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="password" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium"
-                    placeholder="Create password"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-semibold text-[#04282E] mb-2">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 text-lg border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] font-medium"
-                    placeholder="Confirm password"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-[#04282E]">Confirm Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
+                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
+                  required
+                />
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-4 px-6 bg-[#0D6C7E] hover:bg-[#08505D] 
-                       text-white text-lg font-semibold rounded-lg transition-colors duration-200
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]"
-            >
-              Create Account
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-[#04282E]">
-              Already have an account?{' '}
-              <a 
-                href="/doctors/login" 
-                className="text-[#0D6C7E] hover:text-[#08505D] font-semibold"
+            <div className="flex items-center justify-between pt-6">
+              <Link 
+                href="/doctors/login"
+                className="text-[#0D6C7E] hover:text-[#08505D] font-medium"
               >
-                Login here
-              </a>
-            </p>
-          </div>
+                Already registered? Login
+              </Link>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-[#0D6C7E] hover:bg-[#08505D] 
+                         text-white rounded-lg transition-colors duration-200
+                         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]"
+              >
+                Register
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </main>
-  )
+  );
 } 
