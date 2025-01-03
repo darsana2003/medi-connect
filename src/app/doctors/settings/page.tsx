@@ -30,10 +30,8 @@ export default function DoctorSettings() {
       { day: 'Sunday', isWorking: false, startTime: '', endTime: '', breakStart: '', breakEnd: '' }
     ] as WorkingHours[],
     notifications: {
-      email: true,
       appointmentReminders: true,
-      cancelledAppointments: true,
-      rescheduledAppointments: true
+      appointmentUpdates: true,
     },
     security: {
       sessionTimeout: '30'
@@ -210,23 +208,8 @@ export default function DoctorSettings() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium text-[#04282E]">Email Notifications</h4>
-                    <p className="text-sm text-gray-500">Receive notifications via email</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.notifications.email}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      notifications: { ...formData.notifications, email: e.target.checked }
-                    })}
-                    className="h-4 w-4 text-[#0D6C7E]"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
                     <h4 className="font-medium text-[#04282E]">Appointment Reminders</h4>
-                    <p className="text-sm text-gray-500">Get reminders for upcoming appointments</p>
+                    <p className="text-sm text-gray-500">Get email reminders for upcoming appointments</p>
                   </div>
                   <input
                     type="checkbox"
@@ -238,35 +221,27 @@ export default function DoctorSettings() {
                     className="h-4 w-4 text-[#0D6C7E]"
                   />
                 </div>
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium text-[#04282E]">Cancelled Appointments</h4>
-                    <p className="text-sm text-gray-500">Get notified when appointments are cancelled</p>
+                    <h4 className="font-medium text-[#04282E]">Appointment Updates</h4>
+                    <p className="text-sm text-gray-500">Get notified when appointments are cancelled or rescheduled</p>
                   </div>
                   <input
                     type="checkbox"
-                    checked={formData.notifications.cancelledAppointments}
+                    checked={formData.notifications.appointmentUpdates}
                     onChange={(e) => setFormData({
                       ...formData,
-                      notifications: { ...formData.notifications, cancelledAppointments: e.target.checked }
+                      notifications: { ...formData.notifications, appointmentUpdates: e.target.checked }
                     })}
                     className="h-4 w-4 text-[#0D6C7E]"
                   />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-[#04282E]">Rescheduled Appointments</h4>
-                    <p className="text-sm text-gray-500">Get notified when appointments are rescheduled</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.notifications.rescheduledAppointments}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      notifications: { ...formData.notifications, rescheduledAppointments: e.target.checked }
-                    })}
-                    className="h-4 w-4 text-[#0D6C7E]"
-                  />
+
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Note:</span> All notifications will be sent to your registered email address.
+                  </p>
                 </div>
               </div>
             </div>

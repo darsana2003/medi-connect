@@ -25,19 +25,10 @@ export default function MonthlyAppointments() {
     history: Appointment[];
   } | null>(null)
 
-  // Add a function to filter appointments by selected month
-  const getAppointmentsForMonth = (appointments: Appointment[], selectedMonth: string) => {
-    const [year, month] = selectedMonth.split('-')
-    return appointments.filter(apt => {
-      const aptDate = new Date(apt.date)
-      return aptDate.getFullYear() === parseInt(year) && aptDate.getMonth() === parseInt(month) - 1
-    })
-  }
-
-  // Update the useEffect to include more realistic dates
+  // Example appointments data
   useEffect(() => {
     // This would be replaced with actual API call
-    const allAppointments = [
+    setAppointments([
       {
         id: '1',
         patientId: 'P001',
@@ -64,20 +55,8 @@ export default function MonthlyAppointments() {
         time: '11:00 AM',
         reason: 'Consultation',
         status: 'upcoming'
-      },
-      {
-        id: '4',
-        patientId: 'P001',
-        patientName: 'Alice Johnson',
-        date: '2024-03-25',
-        time: '02:00 PM',
-        reason: 'Follow-up',
-        status: 'upcoming'
       }
-    ]
-
-    // Filter appointments for selected month
-    setAppointments(getAppointmentsForMonth(allAppointments, selectedMonth))
+    ])
   }, [selectedMonth])
 
   const getStatusColor = (status: string) => {
@@ -98,47 +77,7 @@ export default function MonthlyAppointments() {
   }
 
   const viewPatientHistory = (patientId: string, patientName: string) => {
-    // Get all appointments for this patient, not just from current month
-    const allAppointments = [
-      {
-        id: '1',
-        patientId: 'P001',
-        patientName: 'Alice Johnson',
-        date: '2024-03-20',
-        time: '09:00 AM',
-        reason: 'Regular Checkup',
-        status: 'upcoming'
-      },
-      {
-        id: '2',
-        patientId: 'P001',
-        patientName: 'Alice Johnson',
-        date: '2024-02-15',
-        time: '10:30 AM',
-        reason: 'Follow-up',
-        status: 'completed'
-      },
-      {
-        id: '3',
-        patientId: 'P002',
-        patientName: 'Bob Smith',
-        date: '2024-03-22',
-        time: '11:00 AM',
-        reason: 'Consultation',
-        status: 'upcoming'
-      },
-      {
-        id: '4',
-        patientId: 'P001',
-        patientName: 'Alice Johnson',
-        date: '2024-03-25',
-        time: '02:00 PM',
-        reason: 'Follow-up',
-        status: 'upcoming'
-      }
-    ]
-    
-    const patientAppointments = allAppointments.filter(apt => apt.patientId === patientId)
+    const patientAppointments = appointments.filter(apt => apt.patientId === patientId)
     setSelectedPatient({
       id: patientId,
       name: patientName,
@@ -195,13 +134,6 @@ export default function MonthlyAppointments() {
 
           {/* Appointments List */}
           <div className="space-y-6">
-            <h3 className="text-lg font-medium text-[#04282E] mb-4">
-              Appointments for {new Date(selectedMonth + '-01').toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long'
-              })}
-            </h3>
-            
             {appointments
               .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
               .map((appointment) => (
@@ -245,10 +177,7 @@ export default function MonthlyAppointments() {
 
             {appointments.length === 0 && (
               <div className="text-center py-8 text-[#ADADAD]">
-                No appointments found for {new Date(selectedMonth + '-01').toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long'
-                })}
+                No appointments found for this month
               </div>
             )}
           </div>

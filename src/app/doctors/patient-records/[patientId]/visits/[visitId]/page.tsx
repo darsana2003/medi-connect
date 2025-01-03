@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import NotificationBell from '@/components/NotificationBell'
 
 interface VisitDetail {
   date: string;
@@ -235,27 +236,43 @@ export default function DetailedVisitView({
   return (
     <div className="min-h-screen bg-[#F4F4F4] p-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="relative w-[40px] h-[40px] flex-shrink-0">
-            <Image
-              src="/medib.png"
-              alt="MediConnect Logo"
-              fill
-              sizes="40px"
-              className="object-contain"
-              priority
-            />
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="relative w-[40px] h-[40px] flex-shrink-0">
+                <Image
+                  src="/medib.png"
+                  alt="MediConnect Logo"
+                  fill
+                  sizes="40px"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <h1 className="text-2xl font-bold text-[#0D6C7E]">Patient Visit Details</h1>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <NotificationBell />
+              <div className="flex space-x-4">
+                <Link 
+                  href={`/doctors/patient-records/${params.patientId}`}
+                  className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
+                >
+                  Back to Patient Records
+                </Link>
+                <Link 
+                  href="/doctors/dashboard"
+                  className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
+                >
+                  Back to Dashboard
+                </Link>
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-[#0D6C7E]">Visit Details</h1>
         </div>
-        <Link 
-          href={`/doctors/patient-records/${params.patientId}`}
-          className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
-        >
-          Back to Records
-        </Link>
-      </div>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Vital Signs Card */}
