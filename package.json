@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
+    "@headlessui/tailwindcss": "^0.2.1",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "recharts": "^2.15.0",
     "typescript": "latest"
   },
   "devDependencies": {
