@@ -6,6 +6,10 @@ import Image from 'next/image'
 import Appointments from '@/components/admin/Appointments'
 import IncomingRequests from '@/components/admin/IncomingRequests'
 import PatientList from '@/components/admin/PatientList'
+import DoctorList from '@/components/admin/DoctorList'
+import DepartmentList from '@/components/admin/DepartmentList'
+import Analytics from '@/components/admin/Analytics'
+import { Bar, Line, Pie } from 'react-chartjs-2'
 
 type TabType = 'appointments' | 'requests' | 'patients' | 'doctors' | 'departments' | 'analytics'
 
@@ -90,6 +94,9 @@ export default function AdminDashboard() {
         {activeTab === 'appointments' && <Appointments />}
         {activeTab === 'requests' && <IncomingRequests />}
         {activeTab === 'patients' && <PatientList />}
+        {activeTab === 'doctors' && <DoctorList />}
+        {activeTab === 'departments' && <DepartmentList />}
+        {activeTab === 'analytics' && <Analytics />}
         {/* Other tab content remains the same */}
       </main>
     </div>
