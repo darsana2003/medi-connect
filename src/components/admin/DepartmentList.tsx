@@ -1,115 +1,365 @@
 'use client'
 
 import { useState } from 'react'
+import DepartmentDetails from './DepartmentDetails'
+import EditDepartment from './EditDepartment'
 
-type Department = {
+interface Department {
   id: string
   name: string
-  hod: string
-  totalStaff: number
-  numberOfPatients: number
-  availableFacilities: string[]
+  departmentId: string
+  description: string
+  headOfDepartment: {
+    name: string
+    yearsOfService: number
+    specialization: string
+    contact: {
+      email: string
+      phone: string
+      office: string
+    }
+  }
+  staff: {
+    totalDoctors: number
+    totalNurses: number
+    totalSupportStaff: number
+    keyStaffMembers: Array<{
+      name: string
+      role: string
+      specialization: string
+    }>
+  }
+  patientInfo: {
+    currentPatients: number
+    totalBeds: number
+    availableBeds: number
+  }
+  facilities: {
+    equipment: string[]
+    specialTreatmentAreas: string[]
+    ongoingProjects: string[]
+  }
+  operationalHours: {
+    weekdays: string
+    weekends: string
+    emergencyContact: string
+  }
+  performance: {
+    successRate: number
+    monthlyTurnover: number
+    patientFeedback: number
+  }
 }
 
 export default function DepartmentList() {
-  const [departments, setDepartments] = useState<Department[]>([
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+
+  const departments: Department[] = [
     {
-      id: 'DEP001',
+      id: '1',
       name: 'Cardiology',
-      hod: 'Dr. Emily White',
-      totalStaff: 15,
-      numberOfPatients: 30,
-      availableFacilities: ['ECG', 'Echocardiogram', 'Stress Test']
+      departmentId: 'CARD001',
+      description: 'Specialized in heart and cardiovascular treatments',
+      headOfDepartment: {
+        name: 'Dr. Emily White',
+        yearsOfService: 15,
+        specialization: 'Interventional Cardiology',
+        contact: {
+          email: 'emily.white@hospital.com',
+          phone: '123-456-7890',
+          office: 'Room 405'
+        }
+      },
+      staff: {
+        totalDoctors: 15,
+        totalNurses: 25,
+        totalSupportStaff: 10,
+        keyStaffMembers: [
+          { name: 'Dr. John Smith', role: 'Senior Cardiologist', specialization: 'Heart Surgery' },
+          { name: 'Dr. Sarah Lee', role: 'Cardiologist', specialization: 'Heart Failure' }
+        ]
+      },
+      patientInfo: {
+        currentPatients: 30,
+        totalBeds: 40,
+        availableBeds: 10
+      },
+      facilities: {
+        equipment: ['ECG', 'Echocardiogram', 'Stress Test Equipment'],
+        specialTreatmentAreas: ['Cardiac ICU', 'Catheterization Lab'],
+        ongoingProjects: ['Heart Failure Research', 'Preventive Cardiology Program']
+      },
+      operationalHours: {
+        weekdays: '8:00 AM - 8:00 PM',
+        weekends: '9:00 AM - 5:00 PM',
+        emergencyContact: '911'
+      },
+      performance: {
+        successRate: 95,
+        monthlyTurnover: 150,
+        patientFeedback: 4.8
+      }
     },
     {
-      id: 'DEP002',
+      id: '2',
       name: 'Neurology',
-      hod: 'Dr. Michael Brown',
-      totalStaff: 10,
-      numberOfPatients: 20,
-      availableFacilities: ['EEG', 'CT Scan', 'MRI']
+      departmentId: 'NEUR001',
+      description: 'Specialized in neurological disorders and brain treatments',
+      headOfDepartment: {
+        name: 'Dr. Michael Brown',
+        yearsOfService: 12,
+        specialization: 'Neurological Surgery',
+        contact: {
+          email: 'michael.brown@hospital.com',
+          phone: '123-456-7891',
+          office: 'Room 302'
+        }
+      },
+      staff: {
+        totalDoctors: 10,
+        totalNurses: 20,
+        totalSupportStaff: 8,
+        keyStaffMembers: [
+          { name: 'Dr. Lisa Chen', role: 'Neurologist', specialization: 'Stroke Treatment' },
+          { name: 'Dr. James Wilson', role: 'Neurologist', specialization: 'Epilepsy' }
+        ]
+      },
+      patientInfo: {
+        currentPatients: 20,
+        totalBeds: 30,
+        availableBeds: 10
+      },
+      facilities: {
+        equipment: ['MRI', 'CT Scan', 'EEG Machine'],
+        specialTreatmentAreas: ['Neuro ICU', 'Stroke Unit'],
+        ongoingProjects: ['Brain Mapping Research', 'Epilepsy Treatment Study']
+      },
+      operationalHours: {
+        weekdays: '9:00 AM - 6:00 PM',
+        weekends: '9:00 AM - 2:00 PM',
+        emergencyContact: '911'
+      },
+      performance: {
+        successRate: 92,
+        monthlyTurnover: 100,
+        patientFeedback: 4.7
+      }
     },
     {
-      id: 'DEP003',
+      id: '3',
       name: 'Pediatrics',
-      hod: 'Dr. Sarah Johnson',
-      totalStaff: 12,
-      numberOfPatients: 25,
-      availableFacilities: ['Vaccination', 'Pediatric ICU']
+      departmentId: 'PED001',
+      description: 'Specialized in medical care for children and adolescents',
+      headOfDepartment: {
+        name: 'Dr. Sarah Johnson',
+        yearsOfService: 10,
+        specialization: 'Pediatric Medicine',
+        contact: {
+          email: 'sarah.johnson@hospital.com',
+          phone: '123-456-7892',
+          office: 'Room 205'
+        }
+      },
+      staff: {
+        totalDoctors: 12,
+        totalNurses: 30,
+        totalSupportStaff: 15,
+        keyStaffMembers: [
+          { name: 'Dr. Robert Kim', role: 'Pediatrician', specialization: 'Neonatology' },
+          { name: 'Dr. Maria Garcia', role: 'Pediatrician', specialization: 'Pediatric Emergency' }
+        ]
+      },
+      patientInfo: {
+        currentPatients: 25,
+        totalBeds: 35,
+        availableBeds: 10
+      },
+      facilities: {
+        equipment: ['Pediatric Ventilators', 'Incubators', 'Phototherapy Units'],
+        specialTreatmentAreas: ['NICU', 'Pediatric Emergency'],
+        ongoingProjects: ['Childhood Obesity Prevention', 'Vaccination Awareness']
+      },
+      operationalHours: {
+        weekdays: '8:00 AM - 7:00 PM',
+        weekends: '9:00 AM - 4:00 PM',
+        emergencyContact: '911'
+      },
+      performance: {
+        successRate: 97,
+        monthlyTurnover: 200,
+        patientFeedback: 4.9
+      }
     },
     {
-      id: 'DEP004',
+      id: '4',
       name: 'Orthopedics',
-      hod: 'Dr. John Doe',
-      totalStaff: 8,
-      numberOfPatients: 15,
-      availableFacilities: ['X-Ray', 'Physiotherapy']
+      departmentId: 'ORTH001',
+      description: 'Specialized in musculoskeletal system and bone treatments',
+      headOfDepartment: {
+        name: 'Dr. John Doe',
+        yearsOfService: 18,
+        specialization: 'Orthopedic Surgery',
+        contact: {
+          email: 'john.doe@hospital.com',
+          phone: '123-456-7893',
+          office: 'Room 503'
+        }
+      },
+      staff: {
+        totalDoctors: 8,
+        totalNurses: 15,
+        totalSupportStaff: 10,
+        keyStaffMembers: [
+          { name: 'Dr. David Park', role: 'Orthopedic Surgeon', specialization: 'Joint Replacement' },
+          { name: 'Dr. Emma Thompson', role: 'Orthopedic Surgeon', specialization: 'Sports Medicine' }
+        ]
+      },
+      patientInfo: {
+        currentPatients: 15,
+        totalBeds: 25,
+        availableBeds: 10
+      },
+      facilities: {
+        equipment: ['X-Ray', 'MRI', 'Physiotherapy Equipment'],
+        specialTreatmentAreas: ['Joint Replacement Center', 'Sports Injury Clinic'],
+        ongoingProjects: ['Minimally Invasive Surgery Research', 'Sports Injury Prevention']
+      },
+      operationalHours: {
+        weekdays: '8:30 AM - 6:00 PM',
+        weekends: '10:00 AM - 2:00 PM',
+        emergencyContact: '911'
+      },
+      performance: {
+        successRate: 94,
+        monthlyTurnover: 120,
+        patientFeedback: 4.6
+      }
     }
-  ])
+  ]
 
-  const handleViewDetails = (id: string) => {
-    // Logic to view department details
-    console.log('Viewing details for:', id)
+  const handleView = (department: Department) => {
+    setSelectedDepartment(department)
+    setIsEditing(false)
   }
 
-  const handleEdit = (id: string) => {
-    // Logic to edit department information
-    console.log('Editing department:', id)
+  const handleEdit = (department: Department) => {
+    setSelectedDepartment(department)
+    setIsEditing(true)
   }
 
-  const handleDelete = (id: string) => {
-    // Logic to delete department
-    setDepartments(departments.filter(department => department.id !== id))
+  const handleDelete = async (departmentId: string) => {
+    if (confirm('Are you sure you want to delete this department?')) {
+      try {
+        // API call to delete department
+        console.log('Deleting department:', departmentId)
+        // Refresh the list after deletion
+      } catch (error) {
+        console.error('Error deleting department:', error)
+      }
+    }
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Department List</h2>
-
-      {/* Table Header */}
-      <div className="border-b border-gray-200">
-        <div className="grid grid-cols-6 gap-4 px-6 py-4 bg-gray-50 text-sm font-medium text-gray-500">
-          <div>DEPARTMENT NAME</div>
-          <div>HEAD OF DEPARTMENT</div>
-          <div>TOTAL STAFF</div>
-          <div>NUMBER OF PATIENTS</div>
-          <div>AVAILABLE FACILITIES</div>
-          <div>ACTIONS</div>
-        </div>
+    <div className="bg-white rounded-lg shadow">
+      <div className="px-4 py-5 sm:px-6">
+        <h2 className="text-xl font-semibold">Department List</h2>
       </div>
 
-      {/* Table Body */}
-      <div className="divide-y divide-gray-200">
-        {departments.map((department) => (
-          <div key={department.id} className="grid grid-cols-6 gap-4 px-6 py-4 items-center">
-            <div className="text-sm font-medium text-gray-900">{department.name}</div>
-            <div className="text-sm text-gray-500">{department.hod}</div>
-            <div className="text-sm text-gray-500">{department.totalStaff}</div>
-            <div className="text-sm text-gray-500">{department.numberOfPatients}</div>
-            <div className="text-sm text-gray-500">{department.availableFacilities.join(', ')}</div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleViewDetails(department.id)}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                View Details
-              </button>
-              <button
-                onClick={() => handleEdit(department.id)}
-                className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(department.id)}
-                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Department Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Head of Department
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Total Staff
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Number of Patients
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Available Facilities
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {departments.map((department) => (
+              <tr key={department.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">{department.name}</div>
+                  <div className="text-sm text-gray-500">{department.departmentId}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {department.headOfDepartment.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {department.staff.totalDoctors + department.staff.totalNurses + department.staff.totalSupportStaff}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {department.patientInfo.currentPatients}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {department.facilities.equipment.join(', ')}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleView(department)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => handleEdit(department)}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(department.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {/* View Details Modal */}
+      {selectedDepartment && !isEditing && (
+        <DepartmentDetails
+          department={selectedDepartment}
+          onClose={() => setSelectedDepartment(null)}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {selectedDepartment && isEditing && (
+        <EditDepartment
+          department={selectedDepartment}
+          onClose={() => {
+            setSelectedDepartment(null)
+            setIsEditing(false)
+          }}
+          onSave={(updatedDepartment) => {
+            console.log('Updated department:', updatedDepartment)
+            setIsEditing(false)
+            setSelectedDepartment(null)
+          }}
+        />
+      )}
     </div>
   )
 } 

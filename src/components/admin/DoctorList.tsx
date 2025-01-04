@@ -1,126 +1,272 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import DoctorDetails from './DoctorDetails'
+import EditDoctor from './EditDoctor'
 
-type Doctor = {
+interface Doctor {
   id: string
   name: string
+  employeeId: string
   specialization: string
-  availability: string
-  contactInfo: {
-    phone: string
-    email: string
+  department: string
+  expertise: string[]
+  qualifications: string[]
+  experience: number
+  previousWorkplaces: string[]
+  position: string
+  schedule: {
+    days: string[]
+    timeSlots: string
   }
+  contact: {
+    email: string
+    phone: string
+    office: string
+  }
+  statistics: {
+    totalPatients: number
+    ongoingPatients: number
+    rating: number
+  }
+  status: 'active' | 'inactive' | 'on-leave'
 }
 
 export default function DoctorList() {
-  const [doctors, setDoctors] = useState<Doctor[]>([
+  const router = useRouter()
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+
+  const doctors: Doctor[] = [
     {
-      id: 'DOC001',
+      id: '1',
       name: 'Dr. Emily White',
+      employeeId: 'DOC001',
       specialization: 'Cardiology',
-      availability: 'Mon-Fri, 9 AM - 5 PM',
-      contactInfo: {
+      department: 'Cardiology',
+      expertise: ['Interventional Cardiology', 'Heart Failure'],
+      qualifications: ['MD', 'Ph.D', 'FACC'],
+      experience: 12,
+      previousWorkplaces: ['Mayo Clinic', 'Cleveland Clinic'],
+      position: 'Senior Cardiologist',
+      schedule: {
+        days: ['Mon', 'Tue', 'Wed', 'Fri'],
+        timeSlots: '9:00 AM - 5:00 PM'
+      },
+      contact: {
+        email: 'emily.white@hospital.com',
         phone: '123-456-7890',
-        email: 'emily.white@hospital.com'
-      }
+        office: 'Room 405, 4th Floor'
+      },
+      statistics: {
+        totalPatients: 1500,
+        ongoingPatients: 45,
+        rating: 4.8
+      },
+      status: 'active'
     },
     {
-      id: 'DOC002',
+      id: '2',
       name: 'Dr. Michael Brown',
+      employeeId: 'DOC002',
       specialization: 'Neurology',
-      availability: 'Mon-Wed, 10 AM - 4 PM',
-      contactInfo: {
+      department: 'Neurology',
+      expertise: ['Neurological Surgery', 'Brain Disorders'],
+      qualifications: ['MD', 'FAAN'],
+      experience: 15,
+      previousWorkplaces: ['Johns Hopkins', 'Stanford Medical'],
+      position: 'Head of Neurology',
+      schedule: {
+        days: ['Mon', 'Wed', 'Thu'],
+        timeSlots: '10:00 AM - 4:00 PM'
+      },
+      contact: {
+        email: 'michael.brown@hospital.com',
         phone: '123-456-7891',
-        email: 'michael.brown@hospital.com'
-      }
+        office: 'Room 302, 3rd Floor'
+      },
+      statistics: {
+        totalPatients: 1200,
+        ongoingPatients: 30,
+        rating: 4.9
+      },
+      status: 'active'
     },
     {
-      id: 'DOC003',
+      id: '3',
       name: 'Dr. Sarah Johnson',
+      employeeId: 'DOC003',
       specialization: 'Pediatrics',
-      availability: 'Tue-Thu, 8 AM - 3 PM',
-      contactInfo: {
+      department: 'Pediatrics',
+      expertise: ['General Pediatrics', 'Pediatric Emergency'],
+      qualifications: ['MD', 'FAAP'],
+      experience: 8,
+      previousWorkplaces: ['Children\'s Hospital', 'City Medical'],
+      position: 'Pediatrician',
+      schedule: {
+        days: ['Tue', 'Wed', 'Thu'],
+        timeSlots: '8:00 AM - 3:00 PM'
+      },
+      contact: {
+        email: 'sarah.johnson@hospital.com',
         phone: '123-456-7892',
-        email: 'sarah.johnson@hospital.com'
-      }
+        office: 'Room 205, 2nd Floor'
+      },
+      statistics: {
+        totalPatients: 2000,
+        ongoingPatients: 60,
+        rating: 4.7
+      },
+      status: 'active'
     },
     {
-      id: 'DOC004',
+      id: '4',
       name: 'Dr. John Doe',
+      employeeId: 'DOC004',
       specialization: 'Orthopedics',
-      availability: 'Mon-Fri, 11 AM - 6 PM',
-      contactInfo: {
+      department: 'Orthopedics',
+      expertise: ['Joint Replacement', 'Sports Medicine'],
+      qualifications: ['MD', 'FAAOS'],
+      experience: 10,
+      previousWorkplaces: ['Sports Medicine Center', 'General Hospital'],
+      position: 'Senior Orthopedic Surgeon',
+      schedule: {
+        days: ['Mon', 'Tue', 'Thu', 'Fri'],
+        timeSlots: '11:00 AM - 6:00 PM'
+      },
+      contact: {
+        email: 'john.doe@hospital.com',
         phone: '123-456-7893',
-        email: 'john.doe@hospital.com'
+        office: 'Room 503, 5th Floor'
+      },
+      statistics: {
+        totalPatients: 1800,
+        ongoingPatients: 40,
+        rating: 4.6
+      },
+      status: 'active'
+    }
+  ]
+
+  const handleView = (doctor: Doctor) => {
+    setSelectedDoctor(doctor)
+    setIsEditing(false)
+  }
+
+  const handleEdit = (doctor: Doctor) => {
+    setSelectedDoctor(doctor)
+    setIsEditing(true)
+  }
+
+  const handleDelete = async (doctorId: string) => {
+    if (confirm('Are you sure you want to delete this doctor?')) {
+      try {
+        // API call to delete doctor
+        console.log('Deleting doctor:', doctorId)
+        // Refresh the list after deletion
+      } catch (error) {
+        console.error('Error deleting doctor:', error)
       }
     }
-  ])
-
-  const handleViewProfile = (id: string) => {
-    // Logic to view doctor profile
-    console.log('Viewing profile for:', id)
-  }
-
-  const handleEdit = (id: string) => {
-    // Logic to edit doctor information
-    console.log('Editing doctor:', id)
-  }
-
-  const handleDelete = (id: string) => {
-    // Logic to delete doctor
-    setDoctors(doctors.filter(doctor => doctor.id !== id))
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Doctor List</h2>
-
-      {/* Table Header */}
-      <div className="border-b border-gray-200">
-        <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-50 text-sm font-medium text-gray-500">
-          <div>DOCTOR NAME</div>
-          <div>SPECIALIZATION</div>
-          <div>AVAILABILITY</div>
-          <div>CONTACT INFORMATION</div>
-          <div>ACTIONS</div>
-        </div>
+    <div className="bg-white rounded-lg shadow">
+      <div className="px-4 py-5 sm:px-6">
+        <h2 className="text-xl font-semibold">Doctor List</h2>
       </div>
 
-      {/* Table Body */}
-      <div className="divide-y divide-gray-200">
-        {doctors.map((doctor) => (
-          <div key={doctor.id} className="grid grid-cols-5 gap-4 px-6 py-4 items-center">
-            <div className="text-sm font-medium text-gray-900">{doctor.name}</div>
-            <div className="text-sm text-gray-500">{doctor.specialization}</div>
-            <div className="text-sm text-gray-500">{doctor.availability}</div>
-            <div className="text-sm text-gray-500">
-              {doctor.contactInfo.phone} <br />
-              {doctor.contactInfo.email}
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleViewProfile(doctor.id)}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                View Profile
-              </button>
-              <button
-                onClick={() => handleEdit(doctor.id)}
-                className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(doctor.id)}
-                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Doctor Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Specialization
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Availability
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Contact Information
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {doctors.map((doctor) => (
+              <tr key={doctor.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">{doctor.name}</div>
+                      <div className="text-sm text-gray-500">{doctor.employeeId}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">{doctor.specialization}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{doctor.schedule.timeSlots}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{doctor.contact.email}</div>
+                  <div className="text-sm text-gray-500">{doctor.contact.phone}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleView(doctor)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => handleEdit(doctor)}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(doctor.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {/* View Details Modal */}
+      {selectedDoctor && !isEditing && (
+        <DoctorDetails
+          doctor={selectedDoctor}
+          onClose={() => setSelectedDoctor(null)}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {selectedDoctor && isEditing && (
+        <EditDoctor
+          doctor={selectedDoctor}
+          onClose={() => {
+            setSelectedDoctor(null)
+            setIsEditing(false)
+          }}
+          onSave={(updatedDoctor) => {
+            console.log('Updated doctor:', updatedDoctor)
+            // Handle save logic here
+            setIsEditing(false)
+            setSelectedDoctor(null)
+          }}
+        />
+      )}
     </div>
   )
 } 
