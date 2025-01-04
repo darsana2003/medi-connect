@@ -13,6 +13,13 @@ import { Bar, Line, Pie } from 'react-chartjs-2'
 
 type TabType = 'appointments' | 'requests' | 'patients' | 'doctors' | 'departments' | 'analytics'
 
+interface Patient {
+  name: string;
+  date: string;
+  department: string;
+  doctor: string;
+}
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('appointments')

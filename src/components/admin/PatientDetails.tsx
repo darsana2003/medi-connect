@@ -2,197 +2,113 @@
 
 import { useState } from 'react'
 
-type PatientDetailsProps = {
+interface PatientDetailsProps {
   patient: {
-    id: string
-    name: string
-    age: number
-    gender: string
-    medicalHistory: string
-    contactInfo: string
-    appointments: { date: string; doctor: string; medication: string }[]
-    treatmentPlan: string
-    notes: string
-  }
-  onClose: () => void // Function to close the details view
+    id: string;
+    name: string;
+    date: string;
+    department: string;
+    doctor: string;
+    age: number;
+    gender: string;
+    contactInfo: string;
+    medicalHistory: string;
+    upcomingAppointments: {
+      date: string;
+      doctor: string;
+      type: string;
+    }[];
+    recentPrescriptions: {
+      medication: string;
+      dosage: string;
+      frequency: string;
+    }[];
+  };
+  onClose: () => void;
 }
 
 export default function PatientDetails({ patient, onClose }: PatientDetailsProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedPatient, setEditedPatient] = useState(patient)
-
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setEditedPatient((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSave = () => {
-    // Logic to save edited patient info
-    console.log('Saving patient info:', editedPatient)
-    setIsEditing(false)
-  }
-
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-4">Patient Profile</h2>
-      {isEditing ? (
-        <div>
-          <div className="mb-4">
-            <label>Name:</label>
-            <input
-              type="text"
-              name="name"
-              value={editedPatient.name}
-              onChange={handleChange}
-              className="border rounded p-1"
-            />
-          </div>
-          <div className="mb-4">
-            <label>Age:</label>
-            <input
-              type="number"
-              name="age"
-              value={editedPatient.age}
-              onChange={handleChange}
-              className="border rounded p-1"
-            />
-          </div>
-          <div className="mb-4">
-            <label>Gender:</label>
-            <input
-              type="text"
-              name="gender"
-              value={editedPatient.gender}
-              onChange={handleChange}
-              className="border rounded p-1"
-            />
-          </div>
-          <div className="mb-4">
-            <label>Contact Info:</label>
-            <input
-              type="text"
-              name="contactInfo"
-              value={editedPatient.contactInfo}
-              onChange={handleChange}
-              className="border rounded p-1"
-            />
-          </div>
-          <div className="mb-4">
-            <label>Medical History:</label>
-            <textarea
-              name="medicalHistory"
-              value={editedPatient.medicalHistory}
-              onChange={handleChange}
-              className="border rounded p-1"
-            />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Modify Appointments</h3>
-          {editedPatient.appointments.map((appointment, index) => (
-            <div key={index} className="mb-4">
-              <label>Appointment Date:</label>
-              <input
-                type="date"
-                value={appointment.date}
-                onChange={(e) => {
-                  const newAppointments = [...editedPatient.appointments]
-                  newAppointments[index].date = e.target.value
-                  setEditedPatient({ ...editedPatient, appointments: newAppointments })
-                }}
-                className="border rounded p-1"
-              />
-              <label>Doctor:</label>
-              <input
-                type="text"
-                value={appointment.doctor}
-                onChange={(e) => {
-                  const newAppointments = [...editedPatient.appointments]
-                  newAppointments[index].doctor = e.target.value
-                  setEditedPatient({ ...editedPatient, appointments: newAppointments })
-                }}
-                className="border rounded p-1"
-              />
-              <label>Medication:</label>
-              <input
-                type="text"
-                value={appointment.medication}
-                onChange={(e) => {
-                  const newAppointments = [...editedPatient.appointments]
-                  newAppointments[index].medication = e.target.value
-                  setEditedPatient({ ...editedPatient, appointments: newAppointments })
-                }}
-                className="border rounded p-1"
-              />
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">Patient Details</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700">Personal Information</h3>
+              <div className="mt-2 space-y-2">
+                <p><span className="font-medium">Name:</span> {patient.name}</p>
+                <p><span className="font-medium">Age:</span> {patient.age}</p>
+                <p><span className="font-medium">Gender:</span> {patient.gender}</p>
+                <p><span className="font-medium">Contact:</span> {patient.contactInfo}</p>
+              </div>
             </div>
-          ))}
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Change Department/Doctor</h3>
-          <div className="mb-4">
-            <label>Department:</label>
-            <input
-              type="text"
-              name="department"
-              value={editedPatient.department}
-              onChange={handleChange}
-              className="border rounded p-1"
-            />
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700">Medical Information</h3>
+              <div className="mt-2 space-y-2">
+                <p><span className="font-medium">Department:</span> {patient.department}</p>
+                <p><span className="font-medium">Primary Doctor:</span> {patient.doctor}</p>
+                <p><span className="font-medium">Medical History:</span> {patient.medicalHistory}</p>
+              </div>
+            </div>
           </div>
-          <div className="mb-4">
-            <label>Doctor:</label>
-            <input
-              type="text"
-              name="doctor"
-              value={editedPatient.doctor}
-              onChange={handleChange}
-              className="border rounded p-1"
-            />
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700">Upcoming Appointments</h3>
+              <div className="mt-2 space-y-2">
+                {patient.upcomingAppointments.map((appointment, index) => (
+                  <div key={index} className="bg-gray-50 p-2 rounded">
+                    <p><span className="font-medium">Date:</span> {appointment.date}</p>
+                    <p><span className="font-medium">Doctor:</span> {appointment.doctor}</p>
+                    <p><span className="font-medium">Type:</span> {appointment.type}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700">Recent Prescriptions</h3>
+              <div className="mt-2 space-y-2">
+                {patient.recentPrescriptions.map((prescription, index) => (
+                  <div key={index} className="bg-gray-50 p-2 rounded">
+                    <p><span className="font-medium">Medication:</span> {prescription.medication}</p>
+                    <p><span className="font-medium">Dosage:</span> {prescription.dosage}</p>
+                    <p><span className="font-medium">Frequency:</span> {prescription.frequency}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className="mt-6 flex justify-end space-x-3">
           <button
-            onClick={handleSave}
-            className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            onClick={onClose}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
           >
-            Save
+            Close
           </button>
           <button
-            onClick={handleEditToggle}
-            className="ml-2 bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500"
+            onClick={() => window.print()}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
           >
-            Cancel
+            Print Details
           </button>
         </div>
-      ) : (
-        <div className="mb-4">
-          <p><strong>Name:</strong> {patient.name}</p>
-          <p><strong>Age:</strong> {patient.age}</p>
-          <p><strong>Gender:</strong> {patient.gender}</p>
-          <p><strong>Contact Info:</strong> {patient.contactInfo}</p>
-          <p><strong>Medical History:</strong> {patient.medicalHistory}</p>
-        </div>
-      )}
-
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">Appointment History</h3>
-      <ul className="list-disc pl-5 mb-4">
-        {patient.appointments.map((appointment, index) => (
-          <li key={index}>
-            {appointment.date} - {appointment.doctor} (Medication: {appointment.medication})
-          </li>
-        ))}
-      </ul>
-
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">Treatment Plan</h3>
-      <p>{patient.treatmentPlan}</p>
-
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">Notes/Observations</h3>
-      <p>{patient.notes}</p>
-
-      <button
-        onClick={onClose}
-        className="mt-4 bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
-      >
-        Close
-      </button>
+      </div>
     </div>
-  )
+  );
 } 
