@@ -59,7 +59,7 @@ export default function DoctorDetails({ doctor, onClose }: DoctorDetailsProps) {
               <h3 className="text-xl font-semibold mt-2">{doctor.name}</h3>
               <p className="text-gray-500">{doctor.employeeId}</p>
             </div>
-            
+
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold mb-2">Contact Information</h4>
               <p>Email: {doctor.contact.email}</p>

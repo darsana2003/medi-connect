@@ -189,7 +189,7 @@ export default function PatientList() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {patients.map((patient) => (
+        {patients.map((patient) => (
               <tr key={patient.id}>
                 <td className="px-6 py-4 whitespace-nowrap">{patient.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{patient.date}</td>
@@ -197,22 +197,22 @@ export default function PatientList() {
                 <td className="px-6 py-4 whitespace-nowrap">{patient.doctor}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex gap-2">
-                    <button
+              <button
                       onClick={() => handleView(patient)}
                       className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      View Details
-                    </button>
+              >
+                View Details
+              </button>
                     <button
                       onClick={() => handleEdit(patient.id)}
                       className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
                     >
                       Edit
                     </button>
-                  </div>
+            </div>
                 </td>
               </tr>
-            ))}
+        ))}
           </tbody>
         </table>
       </div>

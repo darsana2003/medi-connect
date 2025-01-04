@@ -112,61 +112,55 @@ export default function AdminDashboard() {
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab('appointments')}
-              className={`${
-                activeTab === 'appointments'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-4 text-sm font-medium`}
+              className={`${activeTab === 'appointments'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                } px-3 py-4 text-sm font-medium`}
             >
               Appointments
             </button>
             <button
               onClick={() => setActiveTab('incoming')}
-              className={`${
-                activeTab === 'incoming'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-4 text-sm font-medium`}
+              className={`${activeTab === 'incoming'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                } px-3 py-4 text-sm font-medium`}
             >
               Incoming Requests
             </button>
             <button
               onClick={() => setActiveTab('patients')}
-              className={`${
-                activeTab === 'patients'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-4 text-sm font-medium`}
+              className={`${activeTab === 'patients'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                } px-3 py-4 text-sm font-medium`}
             >
               Patients
             </button>
             <button
               onClick={() => setActiveTab('doctors')}
-              className={`${
-                activeTab === 'doctors'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-4 text-sm font-medium`}
+              className={`${activeTab === 'doctors'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                } px-3 py-4 text-sm font-medium`}
             >
               Doctors
             </button>
             <button
               onClick={() => setActiveTab('departments')}
-              className={`${
-                activeTab === 'departments'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-4 text-sm font-medium`}
+              className={`${activeTab === 'departments'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                } px-3 py-4 text-sm font-medium`}
             >
               Departments
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`${
-                activeTab === 'analytics'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-4 text-sm font-medium`}
+              className={`${activeTab === 'analytics'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                } px-3 py-4 text-sm font-medium`}
             >
               Analytics
             </button>

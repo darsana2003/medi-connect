@@ -55,14 +55,14 @@ export default function PatientDetails({ patient, onClose }: PatientDetailsProps
               </div>
             </div>
 
-            <div>
+        <div>
               <h3 className="text-lg font-semibold text-gray-700">Medical Information</h3>
               <div className="mt-2 space-y-2">
                 <p><span className="font-medium">Department:</span> {patient.department}</p>
                 <p><span className="font-medium">Primary Doctor:</span> {patient.doctor}</p>
                 <p><span className="font-medium">Medical History:</span> {patient.medicalHistory}</p>
-              </div>
-            </div>
+          </div>
+          </div>
           </div>
 
           <div className="space-y-4">
@@ -74,9 +74,9 @@ export default function PatientDetails({ patient, onClose }: PatientDetailsProps
                     <p><span className="font-medium">Date:</span> {appointment.date}</p>
                     <p><span className="font-medium">Doctor:</span> {appointment.doctor}</p>
                     <p><span className="font-medium">Type:</span> {appointment.type}</p>
-                  </div>
+          </div>
                 ))}
-              </div>
+          </div>
             </div>
 
             <div>
@@ -87,12 +87,12 @@ export default function PatientDetails({ patient, onClose }: PatientDetailsProps
                     <p><span className="font-medium">Medication:</span> {prescription.medication}</p>
                     <p><span className="font-medium">Dosage:</span> {prescription.dosage}</p>
                     <p><span className="font-medium">Frequency:</span> {prescription.frequency}</p>
-                  </div>
-                ))}
+            </div>
+          ))}
               </div>
             </div>
           </div>
-        </div>
+          </div>
 
         <div className="mt-6 flex justify-end space-x-3">
           <button
@@ -108,7 +108,7 @@ export default function PatientDetails({ patient, onClose }: PatientDetailsProps
             Print Details
           </button>
         </div>
-      </div>
+        </div>
     </div>
   );
 } 
