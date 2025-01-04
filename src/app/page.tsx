@@ -11,17 +11,16 @@ export default function RolePage() {
   }
 
   const handleDoctorClick = () => {
-    // Handle doctor role selection
     router.push('/doctor/login')
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
       <div className="mb-8 flex flex-col items-center">
-        <div className="w-40 h-40 relative mb-4">
+        <div className="w-60 h-60 relative mb-4">
           <Image
-            src={'/LOGO.png'}
-            alt="Hospital Logo"
+            src="/LOGO_NO_BG.png"
+            alt="MediConnect Logo"
             fill
             priority
             className="object-contain"

@@ -28,10 +28,11 @@ export default function AdminLogin() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Image
-            src="/LOGO.png"
+            src="/LOGO_NO_BG.png"
             alt="MediConnect Logo"
-            width={80}
-            height={80}
+            width={100}
+            height={100}
+            priority
             className="object-contain"
           />
         </div>

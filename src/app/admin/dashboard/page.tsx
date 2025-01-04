@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Appointments from '@/components/admin/Appointments'
+import IncomingRequests from '@/components/admin/IncomingRequests'
+import PatientList from '@/components/admin/PatientList'
 
 type TabType = 'appointments' | 'requests' | 'patients' | 'doctors' | 'departments' | 'analytics'
 
@@ -51,7 +54,12 @@ export default function AdminDashboard() {
               </div>
             </div>
             <button className="text-gray-500 hover:text-gray-700">
-              <Image src="/settings.svg" alt="Settings" width={24} height={24} />
+              <Image
+                src="/LOGO_NO_BG.png"
+                alt="Settings"
+                width={24}
+                height={24}
+              />
             </button>
           </div>
         </div>
@@ -66,8 +74,8 @@ export default function AdminDashboard() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === tab.id
-                    ? 'border-[#0D6C7E] text-[#0D6C7E]'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#0D6C7E] text-[#0D6C7E]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 {tab.name}
@@ -79,13 +87,10 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Content for each tab would go here */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            {tabs.find(tab => tab.id === activeTab)?.name}
-          </h2>
-          {/* Add your tab-specific content here */}
-        </div>
+        {activeTab === 'appointments' && <Appointments />}
+        {activeTab === 'requests' && <IncomingRequests />}
+        {activeTab === 'patients' && <PatientList />}
+        {/* Other tab content remains the same */}
       </main>
     </div>
   )
