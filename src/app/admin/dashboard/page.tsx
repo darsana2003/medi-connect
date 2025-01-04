@@ -1,5 +1,5 @@
 'use client'
-
+//test
 import { useState } from 'react'
 import Image from 'next/image'
 import IncomingRequests from '@/components/admin/IncomingRequests'
@@ -12,7 +12,7 @@ type TabType = 'requests' | 'patients' | 'doctors' | 'departments' | 'analytics'
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('requests')
-  
+
   const adminName = "Jacob Mathew" // Changed from "Dr. John Doe"
   const adminEmail = "jacob.mathew@hospital.com" // Updated email to match new name
 
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-gray-500">{adminEmail}</p>
               </div>
             </div>
-            
+
             <button className="text-gray-500 hover:text-gray-700">
               <Image src="/settings.svg" alt="Settings" width={24} height={24} />
             </button>
@@ -55,11 +55,10 @@ export default function AdminDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                     ? 'border-[#0D6C7E] text-[#0D6C7E]'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 {tab.name}
               </button>
