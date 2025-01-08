@@ -7,121 +7,112 @@ import Link from 'next/link'
 
 export default function AdminLogin() {
   const router = useRouter()
-  const [adminId, setAdminId] = useState('')
-  const [password, setPassword] = useState('')
-  const [hospitalName, setHospitalName] = useState('')
-  const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [formData, setFormData] = useState({
+    hospitalName: '',
+    adminId: '',
+    password: '',
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-
-    if (!adminId || !password || !hospitalName) {
-      setError('Please fill in all fields')
-      return
-    }
-
-    // In production, this should be replaced with actual authentication
-    if (adminId === 'ADMIN123' && password === 'admin123') {
-      router.push('/admin/dashboard')
-    } else {
-      setError('Invalid admin ID or password')
-    }
+    // In a real app, you'd validate credentials here
+    // For now, we'll just redirect to the dashboard
+    router.push('/admin/dashboard')
+    // Store admin info without the "Dr." prefix
+    localStorage.setItem('adminName', 'Sarah Johnson') // Removed "Dr." prefix
+    localStorage.setItem('adminEmail', 'sarah.johnson@mediconnect.com')
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-[#0D6C7E] mb-2">Admin Login</h1>
-          <p className="text-gray-600">Please enter your credentials</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <Image
+            src="/LOGO_NO_BG.png"
+            alt="MediConnect Logo"
+            width={100}
+            height={100}
+            priority
+            className="object-contain"
+          />
         </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          Admin Login
+        </h2>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="hospitalName" className="block text-sm font-medium text-gray-700">
-              Hospital Name
-            </label>
-            <input
-              type="text"
-              id="hospitalName"
-              value={hospitalName}
-              onChange={(e) => setHospitalName(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Enter your hospital name"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="adminId" className="block text-sm font-medium text-gray-700">
-              Admin ID
-            </label>
-            <input
-              type="text"
-              id="adminId"
-              value={adminId}
-              onChange={(e) => setAdminId(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Enter your Admin ID (e.g., ADMIN123)"
-              required
-            />
-            <p className="mt-1 text-sm text-gray-500">Example ID: ADMIN123</p>
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <div className="relative">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="hospitalName" className="block text-sm font-medium text-gray-700">
+                Hospital Name
+              </label>
               <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-                placeholder="Enter your password"
+                type="text"
+                id="hospitalName"
+                name="hospitalName"
                 required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.hospitalName}
+                onChange={(e) => setFormData({ ...formData, hospitalName: e.target.value })}
               />
+            </div>
+
+            <div>
+              <label htmlFor="adminId" className="block text-sm font-medium text-gray-700">
+                Admin ID
+              </label>
+              <input
+                type="text"
+                id="adminId"
+                name="adminId"
+                required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.adminId}
+                onChange={(e) => setFormData({ ...formData, adminId: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
+
+            <div>
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0D6C7E] hover:bg-[#0A5A6B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]"
               >
-                {showPassword ? 'Hide' : 'Show'}
+                Login
               </button>
             </div>
-            <p className="mt-1 text-sm text-gray-500">Example password: admin123</p>
-          </div>
+          </form>
 
-          {error && (
-            <div className="text-sm text-red-600 text-center whitespace-pre-line">
-              {error}
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm">
+              <Link href="/admin/forgot-password" className="text-[#0D6C7E] hover:text-[#0A5A6B]">
+                Forgot password?
+              </Link>
             </div>
-          )}
-
-          <button
-            type="submit"
-            className="w-full bg-[#0D6C7E] text-white py-2 px-4 rounded-md hover:bg-[#0A5A6B] focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:ring-offset-2"
-          >
-            Login
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <Link href="/admin/forgot-password" className="text-[#0D6C7E] hover:underline">
-            Forgot password?
-          </Link>
-        </div>
-
-        <div className="mt-4 text-center">
-          <span className="text-gray-600">New admin? </span>
-          <Link href="/admin/register" className="text-[#0D6C7E] hover:underline">
-            Create an account
-          </Link>
+            <div className="text-sm">
+              <Link href="/admin/register" className="text-[#0D6C7E] hover:text-[#0A5A6B]">
+                Create an account
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 } 

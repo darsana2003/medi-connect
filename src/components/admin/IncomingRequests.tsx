@@ -6,101 +6,107 @@ type Request = {
   id: string
   patientName: string
   requestDate: string
-  status: 'pending' | 'accepted' | 'rejected'
+  status: 'Pending' | 'Approved' | 'Rejected'
 }
 
 export default function IncomingRequests() {
   const [requests, setRequests] = useState<Request[]>([
     {
-      id: '1',
-      patientName: 'Sarah Johnson',
-      requestDate: '2024-01-02',
-      status: 'pending'
+      id: 'REQ001',
+      patientName: 'John Smith',
+      requestDate: '2024-01-04',
+      status: 'Pending'
     },
     {
-      id: '2',
-      patientName: 'Michael Smith',
-      requestDate: '2024-01-02',
-      status: 'pending'
+      id: 'REQ002',
+      patientName: 'Emily Johnson',
+      requestDate: '2024-01-03',
+      status: 'Approved'
     },
-    // Add more sample requests as needed
+    {
+      id: 'REQ003',
+      patientName: 'Michael Brown',
+      requestDate: '2024-01-03',
+      status: 'Pending'
+    }
   ])
 
-  const handleAccept = (id: string) => {
-    setRequests(requests.map(request => 
-      request.id === id ? { ...request, status: 'accepted' } : request
-    ))
+  const handleApprove = (id: string) => {
+    setRequests((prevRequests) =>
+      prevRequests.map((request) =>
+        request.id === id ? { ...request, status: 'Approved' } : request
+      )
+    )
   }
 
   const handleReject = (id: string) => {
-    setRequests(requests.map(request => 
-      request.id === id ? { ...request, status: 'rejected' } : request
-    ))
+    setRequests((prevRequests) =>
+      prevRequests.map((request) =>
+        request.id === id ? { ...request, status: 'Rejected' } : request
+      )
+    )
   }
 
   return (
-    <div className="bg-white shadow rounded-lg">
-      <div className="px-4 py-5 sm:px-6">
-        <h2 className="text-lg font-medium text-gray-900">Incoming Requests</h2>
-        <p className="mt-1 text-sm text-gray-500">Patient appointment requests pending approval</p>
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+        Incoming Requests
+      </h2>
+
+      {/* Table Header */}
+      <div className="border-b border-gray-200">
+        <div className="grid grid-cols-4 gap-4 px-6 py-4 bg-gray-50 text-sm font-medium text-gray-500">
+          <div>PATIENT NAME</div>
+          <div>REQUEST DATE</div>
+          <div>STATUS</div>
+          <div>ACTIONS</div>
+        </div>
       </div>
-      <div className="border-t border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Patient Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Request Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {requests.map((request) => (
-              <tr key={request.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {request.patientName}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(request.requestDate).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${request.status === 'accepted' ? 'bg-green-100 text-green-800' : 
-                      request.status === 'rejected' ? 'bg-red-100 text-red-800' : 
-                      'bg-yellow-100 text-yellow-800'}`}>
-                    {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {request.status === 'pending' && (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleAccept(request.id)}
-                        className="text-green-600 hover:text-green-900 bg-green-100 px-3 py-1 rounded-md"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleReject(request.id)}
-                        className="text-red-600 hover:text-red-900 bg-red-100 px-3 py-1 rounded-md"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      {/* Table Body */}
+      <div className="divide-y divide-gray-200">
+        {requests.map((request) => (
+          <div key={request.id} className="grid grid-cols-4 gap-4 px-6 py-4 items-center">
+            <div className="text-sm font-medium text-gray-900">
+              {request.patientName}
+            </div>
+            <div className="text-sm text-gray-500">
+              {new Date(request.requestDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
+            <div>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                ${request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                  request.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                  'bg-red-100 text-red-800'}`}>
+                {request.status}
+              </span>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleApprove(request.id)}
+                className={`px-3 py-1 text-sm rounded ${
+                  request.status === 'Approved' ? 'bg-gray-400' : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+                disabled={request.status === 'Approved'}
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => handleReject(request.id)}
+                className={`px-3 py-1 text-sm rounded ${
+                  request.status === 'Rejected' ? 'bg-gray-400' : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
+                disabled={request.status === 'Rejected'}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

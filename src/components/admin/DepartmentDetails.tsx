@@ -1,120 +1,164 @@
 'use client'
 
-import Image from 'next/image'
+interface DepartmentDetailsProps {
+  department: {
+    id: string;
+    name: string;
+    departmentId: string;
+    description: string;
+    headOfDepartment: {
+      name: string;
+      yearsOfService: number;
+      specialization: string;
+      contact: {
+        email: string;
+        phone: string;
+        office: string;
+      };
+    };
+    staff: {
+      totalDoctors: number;
+      totalNurses: number;
+      totalSupportStaff: number;
+      keyStaffMembers: Array<{
+        name: string;
+        role: string;
+        specialization: string;
+      }>;
+    };
+    patientInfo: {
+      currentPatients: number;
+      totalBeds: number;
+      availableBeds: number;
+    };
+    facilities: {
+      equipment: string[];
+      specialTreatmentAreas: string[];
+      ongoingProjects: string[];
+    };
+    operationalHours: {
+      weekdays: string;
+      weekends: string;
+      emergencyContact: string;
+    };
+    performance: {
+      successRate: number;
+      monthlyTurnover: number;
+      patientFeedback: number;
+    };
+  };
+  onClose: () => void;
+}
 
-export default function DepartmentDetails({ department, onClose }: { department: any, onClose: () => void }) {
+export default function DepartmentDetails({ department, onClose }: DepartmentDetailsProps) {
   return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose}></div>
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">Department Details</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        <div className="flex min-h-screen items-center justify-center p-4">
-          <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full p-6">
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-500"
-            >
-              <span className="sr-only">Close</span>
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        <div className="grid grid-cols-2 gap-6">
+          {/* Basic Information */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Basic Information</h3>
+            <p><span className="font-medium">Department ID:</span> {department.departmentId}</p>
+            <p><span className="font-medium">Name:</span> {department.name}</p>
+            <p><span className="font-medium">Description:</span> {department.description}</p>
+          </div>
 
-            <div className="space-y-6">
-              {/* Department Header */}
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-900">{department.name}</h3>
-                <p className="mt-1 text-gray-500">{department.description}</p>
-              </div>
+          {/* Head of Department */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Head of Department</h3>
+            <p><span className="font-medium">Name:</span> {department.headOfDepartment.name}</p>
+            <p><span className="font-medium">Years of Service:</span> {department.headOfDepartment.yearsOfService}</p>
+            <p><span className="font-medium">Specialization:</span> {department.headOfDepartment.specialization}</p>
+            <p><span className="font-medium">Contact:</span></p>
+            <ul className="ml-4">
+              <li>Email: {department.headOfDepartment.contact.email}</li>
+              <li>Phone: {department.headOfDepartment.contact.phone}</li>
+              <li>Office: {department.headOfDepartment.contact.office}</li>
+            </ul>
+          </div>
 
-              {/* Head of Department */}
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Head of Department</h4>
-                <div className="flex items-center">
-                  <Image
-                    className="h-16 w-16 rounded-full"
-                    src={department.hod.photo}
-                    alt=""
-                    width={64}
-                    height={64}
-                  />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-900">{department.hod.name}</p>
-                    <p className="text-sm text-gray-500">{department.hod.specialization}</p>
-                    <p className="text-sm text-gray-500">{department.hod.yearsOfService} years of service</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Staff Information */}
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Staff Information</h4>
-                <dl className="grid grid-cols-3 gap-4">
-                  <div>
-                    <dt className="text-sm text-gray-500">Doctors</dt>
-                    <dd className="text-sm font-medium text-gray-900">{department.staff.doctors}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-gray-500">Nurses</dt>
-                    <dd className="text-sm font-medium text-gray-900">{department.staff.nurses}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-gray-500">Support Staff</dt>
-                    <dd className="text-sm font-medium text-gray-900">{department.staff.support}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              {/* Facilities */}
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Facilities & Equipment</h4>
-                <div className="space-y-4">
-                  <div>
-                    <h5 className="text-sm font-medium text-gray-900 mb-2">Equipment</h5>
-                    <ul className="grid grid-cols-2 gap-4">
-                      {department.facilities.equipment.map((item: any) => (
-                        <li key={item.name} className="text-sm text-gray-600">
-                          {item.name} ({item.quantity}) - {item.status}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h5 className="text-sm font-medium text-gray-900 mb-2">Special Treatment Areas</h5>
-                    <ul className="grid grid-cols-2 gap-2">
-                      {department.facilities.specialTreatmentAreas.map((area: string) => (
-                        <li key={area} className="text-sm text-gray-600">{area}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Operational Hours */}
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Operational Hours</h4>
-                <dl className="grid grid-cols-3 gap-4">
-                  <div>
-                    <dt className="text-sm text-gray-500">Weekdays</dt>
-                    <dd className="text-sm font-medium text-gray-900">{department.operationalHours.weekdays}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-gray-500">Weekends</dt>
-                    <dd className="text-sm font-medium text-gray-900">{department.operationalHours.weekends}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-gray-500">Emergency</dt>
-                    <dd className="text-sm font-medium text-gray-900">{department.operationalHours.emergency}</dd>
-                  </div>
-                </dl>
-              </div>
+          {/* Staff Details */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Staff Details</h3>
+            <p><span className="font-medium">Total Doctors:</span> {department.staff.totalDoctors}</p>
+            <p><span className="font-medium">Total Nurses:</span> {department.staff.totalNurses}</p>
+            <p><span className="font-medium">Support Staff:</span> {department.staff.totalSupportStaff}</p>
+            <div className="mt-2">
+              <p className="font-medium">Key Staff Members:</p>
+              <ul className="ml-4">
+                {department.staff.keyStaffMembers.map((member, index) => (
+                  <li key={index}>
+                    {member.name} - {member.role} ({member.specialization})
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
+
+          {/* Facilities and Services */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Facilities and Services</h3>
+            <p className="font-medium">Equipment:</p>
+            <ul className="ml-4 mb-2">
+              {department.facilities.equipment.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+            <p className="font-medium">Special Treatment Areas:</p>
+            <ul className="ml-4 mb-2">
+              {department.facilities.specialTreatmentAreas.map((area, index) => (
+                <li key={index}>{area}</li>
+              ))}
+            </ul>
+            <p className="font-medium">Ongoing Projects:</p>
+            <ul className="ml-4">
+              {department.facilities.ongoingProjects.map((project, index) => (
+                <li key={index}>{project}</li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Performance Metrics */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Performance Metrics</h3>
+            <p><span className="font-medium">Success Rate:</span> {department.performance.successRate}%</p>
+            <p><span className="font-medium">Monthly Patient Turnover:</span> {department.performance.monthlyTurnover}</p>
+            <p><span className="font-medium">Patient Feedback Rating:</span> {department.performance.patientFeedback}/5</p>
+          </div>
+
+          {/* Operational Hours */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3">Operational Hours</h3>
+            <p><span className="font-medium">Weekdays:</span> {department.operationalHours.weekdays}</p>
+            <p><span className="font-medium">Weekends:</span> {department.operationalHours.weekends}</p>
+            <p><span className="font-medium">Emergency Contact:</span> {department.operationalHours.emergencyContact}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Print Details
+          </button>
         </div>
       </div>
-    </>
-  )
+    </div>
+  );
 } 

@@ -3,195 +3,166 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-// Define state and district data
-const stateDistrictData = {
-  Kerala: [
-    'Thiruvananthapuram',
-    'Kollam',
-    'Pathanamthitta',
-    'Alappuzha',
-    'Kottayam',
-    'Idukki',
-    'Ernakulam',
-    'Thrissur',
-    'Palakkad',
-    'Malappuram',
-    'Kozhikode',
-    'Wayanad',
-    'Kannur',
-    'Kasaragod'
-  ],
-  Karnataka: [
-    'Bengaluru',
-    'Mysuru',
-    'Mangaluru',
-    'Hubli-Dharwad',
-    'Belagavi',
-    'Kalaburagi',
-    'Davanagere',
-    'Ballari',
-    'Vijayapura',
-    'Shivamogga'
-  ],
-  'Tamil Nadu': [
-    'Chennai',
-    'Coimbatore',
-    'Madurai',
-    'Salem',
-    'Tiruchirappalli',
-    'Tirunelveli',
-    'Tiruppur',
-    'Vellore',
-    'Erode',
-    'Thoothukkudi'
-  ]
-}
+import { useRouter } from 'next/navigation'
 
 export default function AdminRegistration() {
-  const [selectedState, setSelectedState] = useState('')
-  const [selectedDistrict, setSelectedDistrict] = useState('')
+  const router = useRouter()
+  const [formData, setFormData] = useState({
+    hospitalName: '',
+    state: '',
+    district: '',
+    adminId: '',
+    password: '',
+    confirmPassword: ''
+  })
 
-  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const state = e.target.value
-    setSelectedState(state)
-    setSelectedDistrict('') // Reset district when state changes
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Add registration logic here
+    router.push('/admin/login')
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <div className="text-center mb-6">
-          <div className="w-24 h-24 mx-auto mb-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <div className="w-40 h-40 relative"> {/* Container for the logo */}
             <Image
-              src="/medib.jpg"
+              src="/LOGO_NO_BG.png"
               alt="MediConnect Logo"
-              width={96}
-              height={96}
-              className="w-full h-full object-contain"
+              fill
               priority
+              className="object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold text-[#0D6C7E] mb-2">Admin Registration</h1>
-          <p className="text-gray-600">Create your MediConnect account</p>
         </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          Admin Registration
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Create your MediConnect account
+        </p>
+      </div>
 
-        <form className="space-y-4">
-          <div>
-            <label htmlFor="hospitalName" className="block text-sm font-medium text-gray-700">
-              Hospital Name
-            </label>
-            <input
-              type="text"
-              id="hospitalName"
-              name="hospitalName"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Enter hospital name"
-              required
-            />
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="hospitalName" className="block text-sm font-medium text-gray-700">
+                Hospital Name
+              </label>
+              <input
+                id="hospitalName"
+                name="hospitalName"
+                type="text"
+                required
+                placeholder="Enter hospital name"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.hospitalName}
+                onChange={(e) => setFormData({ ...formData, hospitalName: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+                State
+              </label>
+              <select
+                id="state"
+                name="state"
+                required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+              >
+                <option value="">Select State</option>
+                {/* Add your state options here */}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="district" className="block text-sm font-medium text-gray-700">
+                District
+              </label>
+              <select
+                id="district"
+                name="district"
+                required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.district}
+                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+              >
+                <option value="">Select District</option>
+                {/* Add your district options here */}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="adminId" className="block text-sm font-medium text-gray-700">
+                Admin ID
+              </label>
+              <input
+                id="adminId"
+                name="adminId"
+                type="text"
+                required
+                placeholder="Enter Admin ID (e.g., ADMIN123)"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.adminId}
+                onChange={(e) => setFormData({ ...formData, adminId: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                placeholder="Create a password"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                placeholder="Confirm your password"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0D6C7E] hover:bg-[#0A5A6B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]"
+              >
+                Register
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-6 text-center text-sm">
+            Already have an account?{' '}
+            <Link href="/admin/login" className="font-medium text-[#0D6C7E] hover:text-[#0A5A6B]">
+              Login here
+            </Link>
           </div>
-
-          <div>
-            <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-              State
-            </label>
-            <select
-              id="state"
-              name="state"
-              value={selectedState}
-              onChange={handleStateChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              required
-            >
-              <option value="">Select State</option>
-              {Object.keys(stateDistrictData).map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="district" className="block text-sm font-medium text-gray-700">
-              District
-            </label>
-            <select
-              id="district"
-              name="district"
-              value={selectedDistrict}
-              onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              required
-              disabled={!selectedState}
-            >
-              <option value="">Select District</option>
-              {selectedState &&
-                stateDistrictData[selectedState as keyof typeof stateDistrictData].map((district) => (
-                  <option key={district} value={district}>
-                    {district}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="adminId" className="block text-sm font-medium text-gray-700">
-              Admin ID
-            </label>
-            <input
-              type="text"
-              id="adminId"
-              name="adminId"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Enter Admin ID (e.g., ADMIN123)"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Create a password"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D6C7E] focus:border-[#0D6C7E]"
-              placeholder="Confirm your password"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-[#0D6C7E] text-white py-2 px-4 rounded-md hover:bg-[#0A5A6B] focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:ring-offset-2"
-          >
-            Register
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <span className="text-gray-600">Already have an account? </span>
-          <Link href="/admin/login" className="text-[#0D6C7E] hover:underline">
-            Login here
-          </Link>
         </div>
       </div>
-    </main>
+    </div>
   )
 } 
