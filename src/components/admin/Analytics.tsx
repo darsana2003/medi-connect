@@ -99,7 +99,7 @@ export default function Analytics({ data }: AnalyticsProps) {
 
         {/* Patient Flow Chart */}
         <div className="bg-white p-4 rounded-lg shadow md:col-span-2">
-          <h3 className="text-lg font-semibold mb-2">Patient Flow</h3>
+          <h3 className="text-lg text-black font-semibold mb-2">Patient Flow</h3>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={data.patientFlow}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -120,7 +120,7 @@ export default function Analytics({ data }: AnalyticsProps) {
       {/* Appointment Trends */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Appointment Trends</h3>
+          <h3 className="text-lg text-black font-semibold mb-2">Appointment Trends</h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={data.appointmentTrends}>
               <CartesianGrid strokeDasharray="3 3" />
