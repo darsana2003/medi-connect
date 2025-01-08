@@ -76,7 +76,7 @@ export default function Analytics({ data }: AnalyticsProps) {
       {/* Overview Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Overview</h3>
+          <h3 className="text-lg text-black font-semibold mb-2">Overview</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 p-3 rounded">
               <p className="text-sm text-gray-600">Total Patients</p>
@@ -116,7 +116,7 @@ export default function Analytics({ data }: AnalyticsProps) {
       </div>
 
       {/* Department Performance */}
-      
+
       {/* Appointment Trends */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
@@ -133,11 +133,11 @@ export default function Analytics({ data }: AnalyticsProps) {
         </div>
 
         {/* Department Success Rates */}
-        
+
       </div>
 
       {/* Department Metrics Table */}
-      
+
     </div>
   );
 } 
