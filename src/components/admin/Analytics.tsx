@@ -90,10 +90,10 @@ export default function Analytics({ data }: AnalyticsProps) {
               <p className="text-sm text-gray-600">Bed Occupancy</p>
               <p className="text-2xl font-bold">{data.overview.bedOccupancy}%</p>
             </div>
-            <div className="bg-purple-50 p-3 rounded">
+            {/* <div className="bg-purple-50 p-3 rounded">
               <p className="text-sm text-gray-600">Patient Satisfaction</p>
               <p className="text-2xl font-bold">{data.overview.patientSatisfaction}%</p>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -116,39 +116,7 @@ export default function Analytics({ data }: AnalyticsProps) {
       </div>
 
       {/* Department Performance */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Department Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.departmentPerformance}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="patients" fill="#8884d8" />
-              <Bar dataKey="successRate" fill="#82ca9d" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Doctor Performance */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Doctor Consultations</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.doctorPerformance}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="consultations" fill="#8884d8" />
-              <Bar dataKey="rating" fill="#82ca9d" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
+      
       {/* Appointment Trends */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
@@ -165,61 +133,11 @@ export default function Analytics({ data }: AnalyticsProps) {
         </div>
 
         {/* Department Success Rates */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Department Success Rates</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data.departmentPerformance}
-                dataKey="successRate"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                label
-              />
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        
       </div>
 
       {/* Department Metrics Table */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">Department Metrics</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Avg. Waiting Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Resource Utilization
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Success Rate
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.departmentMetrics.map((dept, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap">{dept.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{dept.waitingTime} mins</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{dept.resourceUtilization}%</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{dept.successRate}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      
     </div>
   );
 } 
