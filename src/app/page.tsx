@@ -11,7 +11,7 @@ export default function RolePage() {
   }
 
   const handleDoctorClick = () => {
-    router.push('/doctor/login')
+    router.push('/doctors/login')
   }
 
   return (
