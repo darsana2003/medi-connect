@@ -4,12 +4,27 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { doc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
+import Toast from '@/components/Toast'
 
 interface HospitalInfo {
   name: string;
   state: string;
   district: string;
   location: string;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  specialization: string;
+  licenseNumber: string;
+  hospitals: HospitalInfo[];
+  numHospitals: number;
 }
 
 const statesAndDistricts = {
@@ -58,18 +73,23 @@ const statesAndDistricts = {
 
 export default function DoctorSignUp() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const { signUp } = useAuth();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
     specialization: '',
-    otherSpecialization: '',
-    medicalId: '',
-    aadhaarNumber: '',
+    licenseNumber: '',
     numHospitals: 1,
-    hospitals: [] as HospitalInfo[]
+    hospitals: [{ name: '', state: '', district: '', location: '' }]
   });
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -79,12 +99,6 @@ export default function DoctorSignUp() {
         ...prev,
         numHospitals,
         hospitals: Array(numHospitals).fill({ name: '', state: '', district: '', location: '' })
-      }));
-    } else if (name === 'specialization') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        otherSpecialization: value !== 'Other' ? '' : prev.otherSpecialization
       }));
     } else {
       setFormData(prev => ({
@@ -103,8 +117,7 @@ export default function DoctorSignUp() {
       const updatedHospitals = [...prev.hospitals];
       updatedHospitals[index] = {
         ...updatedHospitals[index],
-        [field]: value,
-        ...(field === 'state' && { district: '' })
+        [field]: value
       };
       return {
         ...prev,
@@ -113,14 +126,72 @@ export default function DoctorSignUp() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Add your form submission logic here
+    setError('');
+    setLoading(true);
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const userData = {
+        name: formData.name,
+        specialization: formData.specialization,
+        licenseNumber: formData.licenseNumber,
+        hospitals: formData.hospitals,
+        role: 'doctor',
+        createdAt: new Date().toISOString()
+      };
+
+      // First create auth user
+      const userCredential = await signUp(formData.email, formData.password, userData, 'doctor');
+
+      // Add to web_users collection
+      await setDoc(doc(db, 'web_users', userCredential.user.uid), {
+        ...userData,
+        email: formData.email,
+        userId: userCredential.user.uid
+      });
+
+      setToast({
+        message: 'Account created successfully! Redirecting to login...',
+        type: 'success'
+      });
+
+      setTimeout(() => {
+        router.push('/doctors/login');
+      }, 2000);
+
+    } catch (error: any) {
+      setToast({
+        message: error.message || 'Failed to create account',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="max-w-md w-full mx-4">
         <div className="flex flex-col items-center mb-8">
           <div className="relative w-[80px] h-[80px] flex-shrink-0">
@@ -174,8 +245,8 @@ export default function DoctorSignUp() {
                 <label className="block text-sm font-medium text-[#04282E]">Medical ID</label>
                 <input
                   type="text"
-                  name="medicalId"
-                  value={formData.medicalId}
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
                   onChange={handleChange}
                   className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                            focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
@@ -185,25 +256,7 @@ export default function DoctorSignUp() {
                 />
               </div>
 
-              {/* 4. Aadhaar Number */}
-              <div>
-                <label className="block text-sm font-medium text-[#04282E]">Aadhaar Number</label>
-                <input
-                  type="text"
-                  name="aadhaarNumber"
-                  value={formData.aadhaarNumber}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                           focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                           text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
-                  placeholder="Enter your 12-digit Aadhaar number"
-                  pattern="[0-9]{12}"
-                  maxLength={12}
-                  required
-                />
-              </div>
-
-              {/* 5. Specialization */}
+              {/* 4. Specialization */}
               <div>
                 <label className="block text-sm font-medium text-[#04282E]">Specialization</label>
                 <select
@@ -258,24 +311,6 @@ export default function DoctorSignUp() {
                   <option value="Other">Other</option>
                 </select>
               </div>
-
-              {/* Add conditional input field for other specialization */}
-              {formData.specialization === 'Other' && (
-                <div>
-                  <label className="block text-sm font-medium text-[#04282E]">Specify Specialization</label>
-                  <input
-                    type="text"
-                    name="otherSpecialization"
-                    value={formData.otherSpecialization}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                             text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
-                    placeholder="Please specify your specialization"
-                    required
-                  />
-                </div>
-              )}
 
               {/* 6. Number of Hospitals */}
               <div>

@@ -4,26 +4,122 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { doc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
+import Toast from '@/components/Toast'
+
+interface FormData {
+  hospitalName: string;
+  state: string;
+  district: string;
+  adminId: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const statesAndDistricts = {
+  "Kerala": [
+    "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha",
+    "Kottayam", "Idukki", "Ernakulam", "Thrissur", "Palakkad",
+    "Malappuram", "Kozhikode", "Wayanad", "Kannur", "Kasaragod"
+  ],
+  "Tamil Nadu": [
+    "Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli",
+    "Tirunelveli", "Vellore", "Erode", "Thoothukkudi", "Dindigul"
+  ],
+  // Add more states as needed
+};
 
 export default function AdminRegistration() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
+  const { signUp } = useAuth()
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [formData, setFormData] = useState<FormData>({
     hospitalName: '',
     state: '',
     district: '',
     adminId: '',
+    email: '',
     password: '',
     confirmPassword: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Add registration logic here
-    router.push('/admin/login')
+    setError('')
+    setLoading(true)
+
+    if (formData.password !== formData.confirmPassword) {
+      setToast({
+        message: 'Passwords do not match',
+        type: 'error'
+      })
+      setLoading(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setToast({
+        message: 'Password must be at least 6 characters',
+        type: 'error'
+      })
+      setLoading(false)
+      return
+    }
+
+    try {
+      const userData = {
+        hospitalName: formData.hospitalName,
+        state: formData.state,
+        district: formData.district,
+        adminId: formData.adminId,
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      }
+
+      const userCredential = await signUp(formData.email, formData.password, userData, 'admin')
+
+      await setDoc(doc(db, 'web_admin_users', userCredential.user.uid), {
+        ...userData,
+        email: formData.email,
+        userId: userCredential.user.uid
+      })
+
+      setToast({
+        message: 'Account created successfully! Redirecting to login...',
+        type: 'success'
+      })
+
+      setTimeout(() => {
+        router.push('/admin/login')
+      }, 2000)
+
+    } catch (error: any) {
+      setToast({
+        message: error.message || 'Failed to create account',
+        type: 'error'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const districts = formData.state ? statesAndDistricts[formData.state as keyof typeof statesAndDistricts] || [] : []
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-40 h-40 relative"> {/* Container for the logo */}
@@ -46,6 +142,12 @@ export default function AdminRegistration() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="hospitalName" className="block text-sm font-medium text-gray-700">
@@ -70,13 +172,15 @@ export default function AdminRegistration() {
               <select
                 id="state"
                 name="state"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
                 value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value, district: '' })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                required
               >
                 <option value="">Select State</option>
-                {/* Add your state options here */}
+                {Object.keys(statesAndDistricts).map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
               </select>
             </div>
 
@@ -87,13 +191,16 @@ export default function AdminRegistration() {
               <select
                 id="district"
                 name="district"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
                 value={formData.district}
                 onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                required
+                disabled={!formData.state}
               >
                 <option value="">Select District</option>
-                {/* Add your district options here */}
+                {districts.map(district => (
+                  <option key={district} value={district}>{district}</option>
+                ))}
               </select>
             </div>
 
@@ -110,6 +217,22 @@ export default function AdminRegistration() {
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
                 value={formData.adminId}
                 onChange={(e) => setFormData({ ...formData, adminId: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder="Enter your email"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
 
@@ -148,9 +271,10 @@ export default function AdminRegistration() {
             <div>
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0D6C7E] hover:bg-[#0A5A6B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]"
               >
-                Register
+                {loading ? 'Creating account...' : 'Register'}
               </button>
             </div>
           </form>
