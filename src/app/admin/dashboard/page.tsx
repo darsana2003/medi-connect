@@ -1,6 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { collection, query, getDocs, where } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
 import Analytics from '@/components/admin/Analytics'
 import DoctorList from '@/components/admin/DoctorList'
 import PatientList from '@/components/admin/PatientList'
@@ -8,168 +12,123 @@ import DepartmentList from '@/components/admin/DepartmentList'
 import AppointmentList from '@/components/admin/AppointmentList'
 import IncomingRequests from '@/components/admin/IncomingRequests'
 
-const analyticsData = {
-  overview: {
-    totalPatients: 150,
-    totalAppointments: 200,
-    bedOccupancy: 75,
-    avgTreatmentDuration: 5,
-    patientSatisfaction: 85
-  },
-  patientFlow: [
-    { date: 'Jan', admitted: 65, discharged: 45, current: 20 },
-    { date: 'Feb', admitted: 75, discharged: 55, current: 40 },
-    { date: 'Mar', admitted: 85, discharged: 65, current: 60 },
-    { date: 'Apr', admitted: 95, discharged: 75, current: 80 },
-    { date: 'May', admitted: 90, discharged: 70, current: 100 }
-  ],
-  departmentPerformance: [
-    { name: 'Cardiology', patients: 45, successRate: 92 },
-    { name: 'Neurology', patients: 35, successRate: 88 },
-    { name: 'Pediatrics', patients: 55, successRate: 95 },
-    { name: 'Orthopedics', patients: 40, successRate: 90 }
-  ],
-  appointmentTrends: [
-    { time: '8 AM', appointments: 10 },
-    { time: '10 AM', appointments: 25 },
-    { time: '12 PM', appointments: 30 },
-    { time: '2 PM', appointments: 28 },
-    { time: '4 PM', appointments: 15 }
-  ],
-  doctorPerformance: [
-    { name: 'Dr. Emily White', consultations: 45, rating: 4.8 },
-    { name: 'Dr. Michael Brown', consultations: 38, rating: 4.6 },
-    { name: 'Dr. Sarah Johnson', consultations: 42, rating: 4.9 },
-    { name: 'Dr. John Doe', consultations: 36, rating: 4.7 }
-  ],
-  emergencyCases: [
-    { month: 'Jan', cases: 25 },
-    { month: 'Feb', cases: 30 },
-    { month: 'Mar', cases: 28 },
-    { month: 'Apr', cases: 35 },
-    { month: 'May', cases: 32 }
-  ],
-  departmentMetrics: [
-    {
-      name: 'Cardiology',
-      waitingTime: 25,
-      resourceUtilization: 85,
-      successRate: 92
-    },
-    {
-      name: 'Neurology',
-      waitingTime: 30,
-      resourceUtilization: 80,
-      successRate: 88
-    },
-    {
-      name: 'Pediatrics',
-      waitingTime: 20,
-      resourceUtilization: 90,
-      successRate: 95
-    },
-    {
-      name: 'Orthopedics',
-      waitingTime: 35,
-      resourceUtilization: 75,
-      successRate: 90
-    }
-  ],
-  appointmentAnalysis: {
-    noShows: 15,
-    cancellations: 25,
-    preferredTimes: [
-      { time: 'Morning', count: 120 },
-      { time: 'Afternoon', count: 80 },
-      { time: 'Evening', count: 40 }
-    ]
-  }
+interface AdminData {
+  hospitalName: string
+  adminId: string
+  state: string
+  district: string
+  email: string
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
+  const { user, getUserData, logout } = useAuth()
+  const [adminData, setAdminData] = useState<AdminData | null>(null)
   const [activeTab, setActiveTab] = useState('appointments')
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+
+  useEffect(() => {
+    if (!user) {
+      router.replace('/admin/login')
+      return
+    }
+
+    const fetchData = async () => {
+      try {
+        // Fetch admin data from web_admin_users collection
+        const adminDoc = await getUserData()
+        setAdminData(adminDoc as AdminData)
+
+        // Fetch analytics data
+        const stats = await fetchAnalyticsData()
+        setAnalyticsData(stats)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+    }
+
+    fetchData()
+  }, [user, router])
+
+  const fetchAnalyticsData = async () => {
+    try {
+      // Get counts from different collections
+      const patientsSnapshot = await getDocs(collection(db, 'patients'))
+      const appointmentsSnapshot = await getDocs(collection(db, 'appointments'))
+      const doctorsSnapshot = await getDocs(
+        query(collection(db, 'web_users'), where('role', '==', 'doctor'))
+      )
+
+      return {
+        overview: {
+          totalPatients: patientsSnapshot.size,
+          totalAppointments: appointmentsSnapshot.size,
+          totalDoctors: doctorsSnapshot.size,
+          // Add more metrics as needed
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error)
+      return null
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.replace('/admin/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* User Profile Header */}
-      <div className="bg-white shadow mb-6">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white text-xl font-semibold">
-              S
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {adminData?.hospitalName || 'Loading...'}
+              </h1>
+              <p className="text-sm text-gray-600">
+                {adminData?.district}, {adminData?.state}
+              </p>
             </div>
-            <div className="ml-4">
-              <h1 className="text-lg font-semibold">Sarah Johnson</h1>
-              <p className="text-sm text-gray-500">sarah.johnson@mediconnect.com</p>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-gray-700 hover:text-gray-900"
+            >
+              Logout
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white shadow mb-6">
-        <div className="container mx-auto px-4">
+      {/* Navigation */}
+      <div className="border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('appointments')}
-              className={`${activeTab === 'appointments'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Appointments
-            </button>
-            <button
-              onClick={() => setActiveTab('incoming')}
-              className={`${activeTab === 'incoming'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Incoming Requests
-            </button>
-            <button
-              onClick={() => setActiveTab('patients')}
-              className={`${activeTab === 'patients'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Patients
-            </button>
-            <button
-              onClick={() => setActiveTab('doctors')}
-              className={`${activeTab === 'doctors'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Doctors
-            </button>
-            <button
-              onClick={() => setActiveTab('departments')}
-              className={`${activeTab === 'departments'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Departments
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`${activeTab === 'analytics'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Analytics
-            </button>
+            {['appointments', 'incoming', 'patients', 'doctors', 'departments', 'analytics'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`${
+                  activeTab === tab
+                    ? 'border-b-2 border-blue-500 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                } px-3 py-4 text-sm font-medium capitalize`}
+              >
+                {tab}
+              </button>
+            ))}
           </nav>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'appointments' && <AppointmentList />}
         {activeTab === 'incoming' && <IncomingRequests />}
         {activeTab === 'patients' && <PatientList />}

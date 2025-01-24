@@ -3,6 +3,24 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useAuth } from '@/contexts/AuthContext'
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
+
+interface DoctorData {
+  name: string;
+  email: string;
+  role: string;
+  specialization?: string;
+  hospitalName?: string;
+  createdAt: string;
+  hospitals?: { name: string }[];
+}
+
+interface AppointmentData extends Appointment {
+  doctorId: string;
+  [key: string]: any;
+}
 
 interface Appointment {
   id: string;
@@ -15,53 +33,57 @@ interface Appointment {
 
 export default function DoctorDashboard() {
   const router = useRouter()
-  const [doctorName, setDoctorName] = useState('')
-  const [hospitalName, setHospitalName] = useState('')
-  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      patientId: 'P001',
-      patientName: 'Alice Johnson',
-      time: '09:00 AM',
-      reason: 'Regular Checkup',
-      status: 'upcoming'
-    },
-    {
-      id: '2',
-      patientId: 'P002',
-      patientName: 'Bob Smith',
-      time: '10:30 AM',
-      reason: 'Follow-up',
-      status: 'upcoming'
-    },
-    {
-      id: '3',
-      patientId: 'P003',
-      patientName: 'Carol White',
-      time: '11:45 AM',
-      reason: 'Consultation',
-      status: 'upcoming'
-    }
-  ])
+  const { user, getUserData, logout } = useAuth()
+  const [doctorData, setDoctorData] = useState<DoctorData | null>(null)
+  const [appointments, setAppointments] = useState<AppointmentData[]>([])
 
   useEffect(() => {
-    const storedDoctorName = localStorage.getItem('doctorName')
-    const storedHospitalName = localStorage.getItem('hospitalName')
-
-    if (!storedDoctorName) {
+    if (!user) {
       router.replace('/doctors/login')
       return
     }
 
-    setDoctorName(storedDoctorName)
-    setHospitalName(storedHospitalName || '')
-  }, [router])
+    const fetchData = async () => {
+      try {
+        const userData = await getUserData()
+        setDoctorData(userData as DoctorData)
 
-  const handleLogout = () => {
-    localStorage.removeItem('doctorName')
-    localStorage.removeItem('doctorId')
-    localStorage.removeItem('hospitalName')
-    router.replace('/doctors/login')
+        // Get today's date at midnight
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+
+        // Fetch today's appointments
+        const appointmentsQuery = query(
+          collection(db, 'appointments'),
+          where('doctorId', '==', user.uid),
+          where('date', '>=', today.toISOString()),
+          where('date', '<', tomorrow.toISOString()),
+          orderBy('date'),
+          orderBy('time')
+        )
+        const appointmentsSnapshot = await getDocs(appointmentsQuery)
+        const appointmentsData = appointmentsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as AppointmentData[]
+        setAppointments(appointmentsData)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+    }
+
+    fetchData()
+  }, [user, router])
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.replace('/doctors/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
   }
 
   const getCurrentDate = () => {
@@ -107,13 +129,21 @@ export default function DoctorDashboard() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, Dr. John Doe</h1>
-                <p className="text-[#04282E]">City Hospital</p>
+                <h1 className="text-2xl font-bold text-[#0D6C7E]">
+                  Welcome, {doctorData?.name}
+                </h1>
+                <p className="text-[#04282E]">{doctorData?.hospitals?.[0]?.name || 'Loading...'}</p>
               </div>
             </div>
             
             <button
-              onClick={() => router.push('/doctors/login')}
+              onClick={async () => {
+                try {
+                  await handleLogout()
+                } catch (error) {
+                  console.error('Logout failed:', error)
+                }
+              }}
               className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
             >
               Logout
@@ -125,15 +155,15 @@ export default function DoctorDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorName}!</h2>
+            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorData?.name}!</h2>
             <p className="text-[#04282E] mt-2">Today is {getCurrentDate()}</p>
           </div>
 
           <div>
             <h3 className="text-xl font-semibold text-[#0D6C7E] mb-4">Today's Appointments</h3>
             <div className="space-y-4">
-              {todayAppointments.length > 0 ? (
-                todayAppointments.map((appointment) => (
+              {appointments.length > 0 ? (
+                appointments.map((appointment) => (
                   <div 
                     key={appointment.id}
                     className="bg-white rounded-lg border border-[#E0E0E0] p-4 flex justify-between items-center"

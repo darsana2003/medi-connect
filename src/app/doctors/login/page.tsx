@@ -3,14 +3,23 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useAuth } from '@/contexts/AuthContext'
+import Toast from '@/components/Toast'
 
 export default function DoctorLogin() {
   const router = useRouter()
-  const [doctorId, setDoctorId] = useState('')
-  const [password, setPassword] = useState('')
-  const [hospitalName, setHospitalName] = useState('')
+  const { signIn } = useAuth()
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    hospitalName: ''
+  })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,19 +27,24 @@ export default function DoctorLogin() {
     setIsLoading(true)
 
     try {
-      if (doctorId === 'DOC123' && password === 'password123') {
-        // Store doctor info
-        localStorage.setItem('doctorName', 'Dr. John Doe')
-        localStorage.setItem('doctorId', doctorId)
-        localStorage.setItem('hospitalName', hospitalName)
+      await signIn(formData.email, formData.password, 'doctor')
+      
+      // Store hospital name in localStorage
+      localStorage.setItem('hospitalName', formData.hospitalName)
+      
+      setToast({
+        message: 'Login successful! Redirecting...',
+        type: 'success'
+      })
 
-        // Redirect to dashboard
-        await router.replace('/doctors/dashboard')
-      } else {
-        setError('Invalid doctor ID or password')
-      }
-    } catch (error) {
-      setError('An error occurred during login')
+      setTimeout(() => {
+        router.replace('/doctors/dashboard')
+      }, 1500)
+    } catch (error: any) {
+      setToast({
+        message: error.message || 'Failed to login',
+        type: 'error'
+      })
     } finally {
       setIsLoading(false)
     }
@@ -38,6 +52,13 @@ export default function DoctorLogin() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="max-w-md w-full mx-4">
         <div className="flex flex-col items-center mb-8">
           <Image
@@ -65,8 +86,8 @@ export default function DoctorLogin() {
               <input
                 type="text"
                 id="hospitalName"
-                value={hospitalName}
-                onChange={(e) => setHospitalName(e.target.value)}
+                value={formData.hospitalName}
+                onChange={(e) => setFormData({ ...formData, hospitalName: e.target.value })}
                 className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
                          text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
@@ -76,21 +97,20 @@ export default function DoctorLogin() {
             </div>
 
             <div>
-              <label htmlFor="doctorId" className="block text-sm font-medium text-[#04282E]">
-                Doctor ID
+              <label htmlFor="email" className="block text-sm font-medium text-[#04282E]">
+                Email
               </label>
               <input
-                type="text"
-                id="doctorId"
-                value={doctorId}
-                onChange={(e) => setDoctorId(e.target.value)}
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
                          text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
-                placeholder="Enter your Doctor ID (e.g., DOC123)"
+                placeholder="Enter your email"
                 required
               />
-              <p className="mt-1 text-xs text-[#ADADAD]">Example ID: DOC123</p>
             </div>
 
             <div>
@@ -100,15 +120,14 @@ export default function DoctorLogin() {
               <input
                 type="password"
                 id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
                          text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
                 placeholder="Enter your password"
                 required
               />
-              <p className="mt-1 text-xs text-[#ADADAD]">Example password: password123</p>
             </div>
 
             <button

@@ -4,27 +4,65 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
+import Toast from '@/components/Toast'
+import { doc, getDoc } from 'firebase/firestore'
+import { db, auth } from '@/lib/firebase/config'
 
 export default function AdminLogin() {
   const router = useRouter()
+  const { signIn } = useAuth()
   const [formData, setFormData] = useState({
-    hospitalName: '',
-    adminId: '',
+    email: '',
     password: '',
+    hospitalName: ''
   })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, you'd validate credentials here
-    // For now, we'll just redirect to the dashboard
-    router.push('/admin/dashboard')
-    // Store admin info without the "Dr." prefix
-    localStorage.setItem('adminName', 'Sarah Johnson') // Removed "Dr." prefix
-    localStorage.setItem('adminEmail', 'sarah.johnson@mediconnect.com')
+    setError('')
+    setLoading(true)
+
+    try {
+      await signIn(formData.email, formData.password, 'admin')
+      
+      // Verify user exists in web_admin_users collection
+      const userDoc = await getDoc(doc(db, 'web_admin_users', auth.currentUser!.uid))
+      if (!userDoc.exists()) {
+        throw new Error('Admin account not found')
+      }
+      
+      setToast({
+        message: 'Login successful! Redirecting...',
+        type: 'success'
+      })
+      
+      setTimeout(() => {
+        router.replace('/admin/dashboard')
+      }, 1500)
+    } catch (error: any) {
+      setToast({
+        message: error.message || 'Failed to login',
+        type: 'error'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Image
@@ -60,17 +98,17 @@ export default function AdminLogin() {
             </div>
 
             <div>
-              <label htmlFor="adminId" className="block text-sm font-medium text-gray-700">
-                Admin ID
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
               </label>
               <input
-                type="text"
-                id="adminId"
-                name="adminId"
+                type="email"
+                id="email"
+                name="email"
                 required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                value={formData.adminId}
-                onChange={(e) => setFormData({ ...formData, adminId: e.target.value })}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
 
