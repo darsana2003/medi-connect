@@ -13,15 +13,23 @@ interface Appointment {
   status: 'upcoming' | 'completed' | 'cancelled';
 }
 
+interface DoctorInfo {
+  name: string;
+  hospital: string;
+}
+
 export default function DoctorDashboard() {
   const router = useRouter()
-  const [doctorName, setDoctorName] = useState('')
-  const [hospitalName, setHospitalName] = useState('')
+  const [doctorInfo, setDoctorInfo] = useState<DoctorInfo>({
+    name: 'Dr. Alice Vincent',
+    hospital: 'City Hospital'
+  })
+  
   const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([
     {
       id: '1',
       patientId: 'P001',
-      patientName: 'Alice Johnson',
+      patientName: 'Rekha Pathrose',
       time: '09:00 AM',
       reason: 'Regular Checkup',
       status: 'upcoming'
@@ -29,7 +37,7 @@ export default function DoctorDashboard() {
     {
       id: '2',
       patientId: 'P002',
-      patientName: 'Bob Smith',
+      patientName: 'Rajan Nair',
       time: '10:30 AM',
       reason: 'Follow-up',
       status: 'upcoming'
@@ -37,7 +45,7 @@ export default function DoctorDashboard() {
     {
       id: '3',
       patientId: 'P003',
-      patientName: 'Carol White',
+      patientName: 'Vivek Gopinath',
       time: '11:45 AM',
       reason: 'Consultation',
       status: 'upcoming'
@@ -53,8 +61,10 @@ export default function DoctorDashboard() {
       return
     }
 
-    setDoctorName(storedDoctorName)
-    setHospitalName(storedHospitalName || '')
+    setDoctorInfo({
+      name: storedDoctorName,
+      hospital: storedHospitalName || 'City Hospital'
+    })
   }, [router])
 
   const handleLogout = () => {
@@ -73,7 +83,7 @@ export default function DoctorDashboard() {
     })
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: Appointment['status']) => {
     switch (status) {
       case 'upcoming':
         return 'bg-blue-100 text-blue-800'
@@ -86,8 +96,12 @@ export default function DoctorDashboard() {
     }
   }
 
-  const viewPatientRecords = (patientId: string, patientName: string) => {
-    router.push(`/doctors/patient-records/${patientId}?name=${encodeURIComponent(patientName)}`)
+  const viewPatientRecords = (patientId: string) => {
+    try {
+      router.push(`/doctors/patient-records/${patientId}`)
+    } catch (error) {
+      console.error('Error navigating to patient records:', error)
+    }
   }
 
   return (
@@ -107,13 +121,13 @@ export default function DoctorDashboard() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, Dr. John Doe</h1>
-                <p className="text-[#04282E]">City Hospital</p>
+                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, {doctorInfo.name}</h1>
+                <p className="text-[#04282E]">{doctorInfo.hospital}</p>
               </div>
             </div>
             
             <button
-              onClick={() => router.push('/doctors/login')}
+              onClick={handleLogout}
               className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
             >
               Logout
@@ -125,7 +139,7 @@ export default function DoctorDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorName}!</h2>
+            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorInfo.name}!</h2>
             <p className="text-[#04282E] mt-2">Today is {getCurrentDate()}</p>
           </div>
 
@@ -148,7 +162,7 @@ export default function DoctorDashboard() {
                         {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                       </span>
                       <button
-                        onClick={() => viewPatientRecords(appointment.patientId, appointment.patientName)}
+                        onClick={() => viewPatientRecords(appointment.patientId)}
                         className="text-[#0D6C7E] hover:text-[#08505D] font-medium flex items-center space-x-1"
                       >
                         <span>View Records</span>
