@@ -208,12 +208,72 @@ export default function DoctorSettings() {
                     <option value="120">2 hours</option>
                   </select>
                 </div>
-                <div>
-                  <button
-                    onClick={() => router.push('/doctors/change-password')}
-                    className="text-[#0D6C7E] hover:text-[#0A5A6A] font-medium"
-                  >
-                    Change Password
+                <div className="p-4 border rounded-lg">
+                  <div className="mb-4">
+                    <p className="font-medium text-black">Change Password</p>
+                    <p className="text-sm text-black">Update your account password</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="currentPassword" className="block text-sm font-medium text-black mb-1">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        id="currentPassword"
+                        className="w-full p-2 border rounded-lg text-black"
+                        placeholder="Enter current password"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="newPassword" className="block text-sm font-medium text-black mb-1">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        className="w-full p-2 border rounded-lg text-black"
+                        placeholder="Enter new password"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-black mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        className="w-full p-2 border rounded-lg text-black"
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+
+                    <div className="flex justify-end mt-4">
+                      <button className="bg-[#0D6C7E] text-white px-4 py-2 rounded-lg hover:bg-[#0A5A6A]">
+                        Update Password
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium text-black">Two-Factor Authentication</p>
+                    <p className="text-sm text-black">Add an extra layer of security</p>
+                  </div>
+                  <button className="text-[#0D6C7E] hover:text-[#0A5A6A] font-medium">
+                    Enable
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium text-black">Login History</p>
+                    <p className="text-sm text-black">View your recent login activity</p>
+                  </div>
+                  <button className="text-[#0D6C7E] hover:text-[#0A5A6A] font-medium">
+                    View
                   </button>
                 </div>
               </div>
