@@ -21,7 +21,7 @@ interface DoctorInfo {
 export default function DoctorDashboard() {
   const router = useRouter()
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo>({
-    name: 'Dr. Alice Vincent',
+    name: 'Dr. Aleena Biju',
     hospital: 'City Hospital'
   })
   
@@ -121,7 +121,7 @@ export default function DoctorDashboard() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, {doctorInfo.name}</h1>
+                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, Dr. Aleena Biju</h1>
                 <p className="text-[#04282E]">{doctorInfo.hospital}</p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function DoctorDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorInfo.name}!</h2>
+            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, Dr. Aleena Biju!</h2>
             <p className="text-[#04282E] mt-2">Today is {getCurrentDate()}</p>
           </div>
 
