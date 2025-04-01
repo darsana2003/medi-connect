@@ -41,7 +41,7 @@ export default function Analytics() {
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
+        <h2 className="text-2xl font-bold text-black">Analytics Dashboard</h2>
       </div>
 
       {/* Overview Cards */}

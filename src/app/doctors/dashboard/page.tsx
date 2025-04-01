@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { auth, db } from '@/firebase/config'
+import { onAuthStateChanged } from 'firebase/auth'
+import { getDoc, doc, collection, query, where, getDocs } from 'firebase/firestore'
 
 interface Appointment {
   id: string;
@@ -21,57 +24,78 @@ interface DoctorInfo {
 export default function DoctorDashboard() {
   const router = useRouter()
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo>({
-    name: 'Dr. Aleena Biju',
-    hospital: 'City Hospital'
+    name: '',
+    hospital: ''
   })
   
-  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      patientId: 'P001',
-      patientName: 'Rekha Pathrose',
-      time: '09:00 AM',
-      reason: 'Regular Checkup',
-      status: 'upcoming'
-    },
-    {
-      id: '2',
-      patientId: 'P002',
-      patientName: 'Rajan Nair',
-      time: '10:30 AM',
-      reason: 'Follow-up',
-      status: 'upcoming'
-    },
-    {
-      id: '3',
-      patientId: 'P003',
-      patientName: 'Vivek Gopinath',
-      time: '11:45 AM',
-      reason: 'Consultation',
-      status: 'upcoming'
-    }
-  ])
+  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([])
 
   useEffect(() => {
-    const storedDoctorName = localStorage.getItem('doctorName')
-    const storedHospitalName = localStorage.getItem('hospitalName')
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.replace('/doctors/login')
+        return
+      }
 
-    if (!storedDoctorName) {
-      router.replace('/doctors/login')
-      return
-    }
+      const fetchDoctorData = async () => {
+        try {
+          // Fetch doctor info
+          const doctorDoc = await getDoc(doc(db, 'doctors', user.uid))
+          if (doctorDoc.exists()) {
+            const data = doctorDoc.data()
+            setDoctorInfo({
+              name: data?.name || '',
+              hospital: data?.hospital || ''
+            })
+          }
 
-    setDoctorInfo({
-      name: storedDoctorName,
-      hospital: storedHospitalName || 'City Hospital'
+          // Fetch today's appointments
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const tomorrow = new Date(today)
+          tomorrow.setDate(tomorrow.getDate() + 1)
+
+          const appointmentsQuery = query(
+            collection(db, 'appointments'),
+            where('doctorId', '==', user.uid),
+            where('date', '>=', today),
+            where('date', '<', tomorrow)
+          )
+
+          const appointmentsSnap = await getDocs(appointmentsQuery)
+          const appointments: Appointment[] = []
+
+          for (const doc of appointmentsSnap.docs) {
+            const data = doc.data()
+            appointments.push({
+              id: doc.id,
+              patientId: data.patientId,
+              patientName: data.patientName,
+              time: data.time,
+              reason: data.reason,
+              status: data.status
+            })
+          }
+
+          setTodayAppointments(appointments)
+        } catch (error) {
+          console.error('Error fetching data:', error)
+        }
+      }
+
+      fetchDoctorData()
     })
+
+    return () => unsubscribe()
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem('doctorName')
-    localStorage.removeItem('doctorId')
-    localStorage.removeItem('hospitalName')
-    router.replace('/doctors/login')
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      router.replace('/doctors/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
   const getCurrentDate = () => {
@@ -121,7 +145,7 @@ export default function DoctorDashboard() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, Dr. Aleena Biju</h1>
+                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, {doctorInfo.name}</h1>
                 <p className="text-[#04282E]">{doctorInfo.hospital}</p>
               </div>
             </div>
@@ -139,7 +163,7 @@ export default function DoctorDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, Dr. Aleena Biju!</h2>
+            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorInfo.name}!</h2>
             <p className="text-[#04282E] mt-2">Today is {getCurrentDate()}</p>
           </div>
 

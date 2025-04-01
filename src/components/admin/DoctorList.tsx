@@ -127,12 +127,12 @@ export default function DoctorList() {
     <div className="bg-white shadow rounded-lg p-6">
       <Toaster position="top-right" />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Doctor Lists</h2>
+        <h2 className="text-2xl font-bold text-black">Doctor Lists</h2>
         <div className="relative">
           <input
             type="text"
             placeholder="Search doctors..."
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D6C7E]"
+            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] text-black"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -154,18 +154,18 @@ export default function DoctorList() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialization</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Doctor Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Specialization</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Availability</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredDoctors.map((doctor) => (
                 <tr key={doctor.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{doctor.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{doctor.specialization}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{doctor.availability}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-black">{doctor.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-black">{doctor.specialization}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-black">{doctor.availability}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
@@ -194,7 +194,7 @@ export default function DoctorList() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-2xl w-full">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">Doctor Details</h3>
+              <h3 className="text-xl font-bold text-black">Doctor Details</h3>
               <button
                 onClick={() => setIsViewModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -205,39 +205,39 @@ export default function DoctorList() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Doctor ID</p>
-                <p className="font-medium">{selectedDoctor.id}</p>
+                <p className="font-medium text-black">{selectedDoctor.id}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Name</p>
-                <p className="font-medium">{selectedDoctor.name}</p>
+                <p className="font-medium text-black">{selectedDoctor.name}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Specialization</p>
-                <p className="font-medium">{selectedDoctor.specialization}</p>
+                <p className="font-medium text-black">{selectedDoctor.specialization}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Experience</p>
-                <p className="font-medium">{selectedDoctor.experience} years</p>
+                <p className="font-medium text-black">{selectedDoctor.experience} years</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Qualification</p>
-                <p className="font-medium">{selectedDoctor.qualification}</p>
+                <p className="font-medium text-black">{selectedDoctor.qualification}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Contact Number</p>
-                <p className="font-medium">{selectedDoctor.contactNumber}</p>
+                <p className="font-medium text-black">{selectedDoctor.contactNumber}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Email</p>
-                <p className="font-medium">{selectedDoctor.email}</p>
+                <p className="font-medium text-black">{selectedDoctor.email}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Address</p>
-                <p className="font-medium">{selectedDoctor.address}</p>
+                <p className="font-medium text-black">{selectedDoctor.address}</p>
               </div>
               <div className="col-span-2">
                 <p className="text-sm text-gray-500">Availability</p>
-                <p className="font-medium">{selectedDoctor.availability}</p>
+                <p className="font-medium text-black">{selectedDoctor.availability}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Status</p>
@@ -266,7 +266,7 @@ export default function DoctorList() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-2xl w-full">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">Edit Doctor</h3>
+              <h3 className="text-xl font-bold text-black">Edit Doctor</h3>
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -276,83 +276,83 @@ export default function DoctorList() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-black">Name</label>
                 <input
                   type="text"
                   value={editDoctor.name}
                   onChange={(e) => setEditDoctor({ ...editDoctor, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Specialization</label>
+                <label className="block text-sm font-medium text-black">Specialization</label>
                 <input
                   type="text"
                   value={editDoctor.specialization}
                   onChange={(e) => setEditDoctor({ ...editDoctor, specialization: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Experience (years)</label>
+                <label className="block text-sm font-medium text-black">Experience (years)</label>
                 <input
                   type="number"
                   value={editDoctor.experience}
                   onChange={(e) => setEditDoctor({ ...editDoctor, experience: parseInt(e.target.value) })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Qualification</label>
+                <label className="block text-sm font-medium text-black">Qualification</label>
                 <input
                   type="text"
                   value={editDoctor.qualification}
                   onChange={(e) => setEditDoctor({ ...editDoctor, qualification: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Contact Number</label>
+                <label className="block text-sm font-medium text-black">Contact Number</label>
                 <input
                   type="text"
                   value={editDoctor.contactNumber}
                   onChange={(e) => setEditDoctor({ ...editDoctor, contactNumber: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium text-black">Email</label>
                 <input
                   type="email"
                   value={editDoctor.email}
                   onChange={(e) => setEditDoctor({ ...editDoctor, email: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Address</label>
+                <label className="block text-sm font-medium text-black">Address</label>
                 <input
                   type="text"
                   value={editDoctor.address}
                   onChange={(e) => setEditDoctor({ ...editDoctor, address: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700">Availability</label>
+                <label className="block text-sm font-medium text-black">Availability</label>
                 <input
                   type="text"
                   value={editDoctor.availability}
                   onChange={(e) => setEditDoctor({ ...editDoctor, availability: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <label className="block text-sm font-medium text-black">Status</label>
                 <select
                   value={editDoctor.status}
                   onChange={(e) => setEditDoctor({ ...editDoctor, status: e.target.value as 'Active' | 'On Leave' | 'Terminated' })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E] text-black"
                 >
                   <option value="Active">Active</option>
                   <option value="On Leave">On Leave</option>

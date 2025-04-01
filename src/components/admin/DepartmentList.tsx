@@ -108,12 +108,12 @@ export default function DepartmentList() {
     <div>
       <Toaster position="top-right" />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Department Lists</h2>
+        <h2 className="text-2xl font-bold text-black">Department Lists</h2>
         <div className="w-1/3">
           <input
             type="text"
             placeholder="Search departments..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D6C7E]"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] text-black"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

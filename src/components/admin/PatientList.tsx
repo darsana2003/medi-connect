@@ -85,12 +85,12 @@ export default function PatientList() {
     <div className="bg-white shadow rounded-lg p-6">
       <Toaster position="top-right" />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Patient Lists</h2>
+        <h2 className="text-2xl font-bold text-black">Patient Lists</h2>
         <div className="relative">
           <input
             type="text"
             placeholder="Search patients..."
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D6C7E]"
+            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] text-black"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
