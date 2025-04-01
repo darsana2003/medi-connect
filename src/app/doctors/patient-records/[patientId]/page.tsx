@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import PatientRecordClient from './PatientRecordClient'
 
 interface Visit {
   date: string;
@@ -12,58 +13,112 @@ interface Visit {
   bloodPressure: string;
   heartRate: string;
   temperature: string;
+  medications?: string[];
+  notes?: string;
 }
 
 interface PatientRecord {
   id: string;
   name: string;
   age: number;
-  gender: string;
+  gender: 'Male' | 'Female' | 'Other';
   contact: string;
   medicalHistory: string;
   visits: Visit[];
 }
 
-export default function PatientRecordPage({ params }: { params: { patientId: string } }) {
+export default function PatientRecordPage() {
   const router = useRouter()
+  const params = useParams()
+  const patientId = params.patientId as string
+  
   const [patient, setPatient] = useState<PatientRecord | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Simulated patient data - replace with actual API call
-    const mockPatient: PatientRecord = {
-      id: params.patientId,
-      name: "John Doe",
-      age: 45,
-      gender: "Male",
-      contact: "+91 9876543210",
-      medicalHistory: "Diabetes Type 2, Hypertension",
-      visits: [
-        {
-          date: "2024-02-01",
-          diagnosis: "Acute bronchitis",
-          prescription: "Antibiotics - Amoxicillin 500mg\nCough syrup",
-          bloodPressure: "120/80",
-          heartRate: "72",
-          temperature: "37.2"
+    try {
+      // Simulated patient data - replace with actual API call
+      const mockPatients: Record<string, PatientRecord> = {
+        'P001': {
+          id: 'P001',
+          name: "Rekha Pathrose",
+          age: 35,
+          gender: "Female",
+          contact: "+1 234-567-8901",
+          medicalHistory: "Asthma, Seasonal Allergies",
+          visits: [
+            {
+              date: "2024-03-15",
+              diagnosis: "Acute bronchitis",
+              prescription: "Amoxicillin 500mg\nCough syrup",
+              bloodPressure: "120/80",
+              heartRate: "72",
+              temperature: "37.2"
+            },
+            {
+              date: "2024-01-02",
+              diagnosis: "Regular checkup",
+              prescription: "Ventolin inhaler\nAntihistamines",
+              bloodPressure: "118/75",
+              heartRate: "70",
+              temperature: "36.8"
+            }
+          ]
         },
-        {
-          date: "2024-01-15",
-          diagnosis: "Regular checkup",
-          prescription: "Metformin 500mg\nAmlodipine 5mg",
-          bloodPressure: "130/85",
-          heartRate: "75",
-          temperature: "36.8"
+        'P002': {
+          id: 'P002',
+          name: "Rajan Nair",
+          age: 42,
+          gender: "Male",
+          contact: "+1 345-678-9012",
+          medicalHistory: "Hypertension",
+          visits: [
+            {
+              date: "2024-03-10",
+              diagnosis: "Follow-up",
+              prescription: "Amlodipine 5mg\nLisinopril 10mg",
+              bloodPressure: "140/90",
+              heartRate: "75",
+              temperature: "36.9"
+            }
+          ]
+        },
+        'P003': {
+          id: 'P003',
+          name: "Vivek Gopinath",
+          age: 28,
+          gender: "Male",
+          contact: "+1 456-789-0123",
+          medicalHistory: "None",
+          visits: [
+            {
+              date: "2024-03-13",
+              diagnosis: "Consultation",
+              prescription: "Paracetamol 500mg",
+              bloodPressure: "122/82",
+              heartRate: "68",
+              temperature: "37.0"
+            }
+          ]
         }
-      ]
-    };
+      }
 
-    // Simulate API call
-    setTimeout(() => {
-      setPatient(mockPatient)
+      // Simulate API call
+      setTimeout(() => {
+        const patientData = mockPatients[patientId]
+        if (patientData) {
+          setPatient(patientData)
+        } else {
+          setError('Patient not found')
+        }
+        setLoading(false)
+      }, 1000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
       setLoading(false)
-    }, 1000)
-  }, [params.patientId])
+    }
+  }, [patientId])
 
   if (loading) {
     return (
@@ -73,11 +128,11 @@ export default function PatientRecordPage({ params }: { params: { patientId: str
     )
   }
 
-  if (!patient) {
+  if (error || !patient) {
     return (
       <div className="min-h-screen bg-[#F4F4F4] p-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">Patient record not found</p>
+          <p className="text-red-600">{error || 'Patient record not found'}</p>
         </div>
       </div>
     )
@@ -86,7 +141,7 @@ export default function PatientRecordPage({ params }: { params: { patientId: str
   return (
     <div className="min-h-screen bg-[#F4F4F4] p-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center mb-6">
         <div className="flex items-center space-x-4">
           <div className="relative w-[40px] h-[40px] flex-shrink-0">
             <Image
@@ -100,12 +155,6 @@ export default function PatientRecordPage({ params }: { params: { patientId: str
           </div>
           <h1 className="text-3xl font-bold text-[#0D6C7E]">Patient Record</h1>
         </div>
-        <Link 
-          href="/doctors/dashboard"
-          className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
-        >
-          Back to Dashboard
-        </Link>
       </div>
 
       {/* Patient Information Card */}
@@ -166,14 +215,29 @@ export default function PatientRecordPage({ params }: { params: { patientId: str
         </div>
       </div>
 
-      {/* Add New Visit Button */}
-      <div className="mt-6">
-        <Link
-          href={`/doctors/patient-records/${patient.id}/new-visit`}
-          className="inline-block bg-[#0D6C7E] text-white px-6 py-3 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200"
+      {/* Bottom buttons */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button
+          onClick={() => router.push(`/doctors/patient-records/${patientId}/new-visit`)}
+          className="p-4 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#0A5A6A] 
+                   transition-colors duration-200 flex items-center justify-center space-x-2"
         >
-          Add New Visit
-        </Link>
+          <span>Record New Visit</span>
+        </button>
+        <button
+          onClick={() => window.print()}
+          className="p-4 bg-[#F4A261] text-white rounded-lg hover:bg-[#E76F51] 
+                   transition-colors duration-200 flex items-center justify-center space-x-2"
+        >
+          <span>Print Record</span>
+        </button>
+        <button
+          onClick={() => router.push('/doctors/dashboard')}
+          className="p-4 bg-[#04282E] text-white rounded-lg hover:bg-[#031D22] 
+                   transition-colors duration-200 flex items-center justify-center space-x-2"
+        >
+          <span>Return to Dashboard</span>
+        </button>
       </div>
     </div>
   )

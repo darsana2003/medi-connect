@@ -1,11 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Analytics from '@/components/admin/Analytics'
 import DoctorList from '@/components/admin/DoctorList'
 import PatientList from '@/components/admin/PatientList'
 import DepartmentList from '@/components/admin/DepartmentList'
 import IncomingRequests from '@/components/admin/IncomingRequests'
+import Patients from '@/components/admin/Patients'
+import Doctors from '@/components/admin/Doctors'
+import Departments from '@/components/admin/Departments'
+
+type TabType = 'requests' | 'patients' | 'doctors' | 'departments' | 'analytics'
+
 import { FaUserCircle } from 'react-icons/fa'
 
 const analyticsData = {
