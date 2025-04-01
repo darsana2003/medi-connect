@@ -87,6 +87,9 @@ export default function AdminLogin() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
+              <p className="mt-1 text-sm text-gray-500">
+                Example ID format: ADMIN_2024_001
+              </p>
             </div>
 
             <div>

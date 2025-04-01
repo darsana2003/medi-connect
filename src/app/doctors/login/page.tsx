@@ -1,147 +1,129 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
+import { auth } from '@/firebase/config'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { onAuthStateChanged } from 'firebase/auth'
 
 export default function DoctorLogin() {
   const router = useRouter()
-  const [doctorId, setDoctorId] = useState('')
-  const [password, setPassword] = useState('')
-  const [hospitalName, setHospitalName] = useState('')
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  })
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace('/doctors/dashboard')
+      }
+    })
+
+    return () => unsubscribe()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setIsLoading(true)
+    setLoading(true)
 
     try {
-      if (doctorId === 'DOC123' && password === 'password123') {
-        // Store doctor info
-        localStorage.setItem('doctorName', 'Dr. John Doe')
-        localStorage.setItem('doctorId', doctorId)
-        localStorage.setItem('hospitalName', hospitalName)
-
-        // Redirect to dashboard
-        await router.replace('/doctors/dashboard')
-      } else {
-        setError('Invalid doctor ID or password')
-      }
-    } catch (error) {
-      setError('An error occurred during login')
+      await signInWithEmailAndPassword(auth, formData.email, formData.password)
+      router.push('/doctors/dashboard')
+    } catch (error: any) {
+      setError(error.message)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F4F4F4]">
-      <div className="max-w-md w-full mx-4">
-        <div className="flex flex-col items-center mb-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
           <Image
-            src="/medib.png"
+            src="/LOGO_NO_BG.png"
             alt="MediConnect Logo"
-            width={80}
-            height={80}
-            className="object-contain mb-4"
+            width={100}
+            height={100}
+            priority
+            className="object-contain"
           />
-          <h1 className="text-3xl font-bold text-[#0D6C7E]">Doctor Login</h1>
         </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          Doctor Login
+        </h2>
+      </div>
 
-        <div className="bg-white p-8 rounded-xl shadow-lg border border-[#E0E0E0]">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
               {error}
             </div>
           )}
-
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="hospitalName" className="block text-sm font-medium text-[#04282E]">
-                Hospital Name
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
               </label>
               <input
-                type="text"
-                id="hospitalName"
-                value={hospitalName}
-                onChange={(e) => setHospitalName(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                         focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                         text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
-                placeholder="Enter your hospital name"
+                type="email"
+                id="email"
+                name="email"
                 required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
 
             <div>
-              <label htmlFor="doctorId" className="block text-sm font-medium text-[#04282E]">
-                Doctor ID
-              </label>
-              <input
-                type="text"
-                id="doctorId"
-                value={doctorId}
-                onChange={(e) => setDoctorId(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                         focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                         text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
-                placeholder="Enter your Doctor ID (e.g., DOC123)"
-                required
-              />
-              <p className="mt-1 text-xs text-[#ADADAD]">Example ID: DOC123</p>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#04282E]">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
               <input
                 type="password"
                 id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-[#E0E0E0] rounded-lg 
-                         focus:outline-none focus:ring-2 focus:ring-[#0D6C7E] focus:border-[#0D6C7E]
-                         text-[#04282E] placeholder:text-[#ADADAD] text-base font-medium"
-                placeholder="Enter your password"
+                name="password"
                 required
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
-              <p className="mt-1 text-xs text-[#ADADAD]">Example password: password123</p>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-4 px-6 bg-[#0D6C7E] hover:bg-[#08505D] 
-                       text-white rounded-lg transition-colors duration-200
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E]
-                       disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Logging in...' : 'Login'}
-            </button>
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0D6C7E] hover:bg-[#0A5A6B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6C7E] disabled:opacity-50"
+              >
+                {loading ? 'Signing in...' : 'Sign in'}
+              </button>
+            </div>
           </form>
 
-          <div className="mt-6 text-center space-y-2">
-            <a 
-              href="/doctors/forgot-password"
-              className="text-sm text-[#F4A261] hover:text-[#E76F51] transition-colors duration-200"
-            >
-              Forgot password?
-            </a>
-            <div className="text-[#04282E]">
-              <span>New doctor? </span>
-              <a 
-                href="/doctors/signup" 
-                className="text-[#0D6C7E] hover:text-[#08505D] font-medium"
-              >
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm">
+              <Link href="/doctors/forgot-password" className="text-[#0D6C7E] hover:text-[#0A5A6B]">
+                Forgot password?
+              </Link>
+            </div>
+            <div className="text-sm">
+              <Link href="/doctors/signup" className="text-[#0D6C7E] hover:text-[#0A5A6B]">
                 Create an account
-              </a>
+              </Link>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 } 

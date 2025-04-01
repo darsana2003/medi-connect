@@ -1,181 +1,195 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { auth, db } from '@/firebase/config'
+import { onAuthStateChanged } from 'firebase/auth'
+import { getDoc, doc, collection, getDocs } from 'firebase/firestore'
 import Analytics from '@/components/admin/Analytics'
 import DoctorList from '@/components/admin/DoctorList'
 import PatientList from '@/components/admin/PatientList'
 import DepartmentList from '@/components/admin/DepartmentList'
-import AppointmentList from '@/components/admin/AppointmentList'
 import IncomingRequests from '@/components/admin/IncomingRequests'
+import Patients from '@/components/admin/Patients'
+import Doctors from '@/components/admin/Doctors'
+import Departments from '@/components/admin/Departments'
+import { FaUserCircle } from 'react-icons/fa'
 
-const analyticsData = {
-  overview: {
-    totalPatients: 150,
-    totalAppointments: 200,
-    bedOccupancy: 75,
-    avgTreatmentDuration: 5,
-    patientSatisfaction: 85
-  },
-  patientFlow: [
-    { date: 'Jan', admitted: 65, discharged: 45, current: 20 },
-    { date: 'Feb', admitted: 75, discharged: 55, current: 40 },
-    { date: 'Mar', admitted: 85, discharged: 65, current: 60 },
-    { date: 'Apr', admitted: 95, discharged: 75, current: 80 },
-    { date: 'May', admitted: 90, discharged: 70, current: 100 }
-  ],
-  departmentPerformance: [
-    { name: 'Cardiology', patients: 45, successRate: 92 },
-    { name: 'Neurology', patients: 35, successRate: 88 },
-    { name: 'Pediatrics', patients: 55, successRate: 95 },
-    { name: 'Orthopedics', patients: 40, successRate: 90 }
-  ],
-  appointmentTrends: [
-    { time: '8 AM', appointments: 10 },
-    { time: '10 AM', appointments: 25 },
-    { time: '12 PM', appointments: 30 },
-    { time: '2 PM', appointments: 28 },
-    { time: '4 PM', appointments: 15 }
-  ],
-  doctorPerformance: [
-    { name: 'Dr. Emily White', consultations: 45, rating: 4.8 },
-    { name: 'Dr. Michael Brown', consultations: 38, rating: 4.6 },
-    { name: 'Dr. Sarah Johnson', consultations: 42, rating: 4.9 },
-    { name: 'Dr. John Doe', consultations: 36, rating: 4.7 }
-  ],
-  emergencyCases: [
-    { month: 'Jan', cases: 25 },
-    { month: 'Feb', cases: 30 },
-    { month: 'Mar', cases: 28 },
-    { month: 'Apr', cases: 35 },
-    { month: 'May', cases: 32 }
-  ],
-  departmentMetrics: [
-    {
-      name: 'Cardiology',
-      waitingTime: 25,
-      resourceUtilization: 85,
-      successRate: 92
-    },
-    {
-      name: 'Neurology',
-      waitingTime: 30,
-      resourceUtilization: 80,
-      successRate: 88
-    },
-    {
-      name: 'Pediatrics',
-      waitingTime: 20,
-      resourceUtilization: 90,
-      successRate: 95
-    },
-    {
-      name: 'Orthopedics',
-      waitingTime: 35,
-      resourceUtilization: 75,
-      successRate: 90
-    }
-  ],
-  appointmentAnalysis: {
-    noShows: 15,
-    cancellations: 25,
-    preferredTimes: [
-      { time: 'Morning', count: 120 },
-      { time: 'Afternoon', count: 80 },
-      { time: 'Evening', count: 40 }
-    ]
-  }
+interface AdminInfo {
+  hospitalName: string;
+  email: string;
+  state: string;
+  district: string;
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('appointments')
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState('requests')
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+  const [adminInfo, setAdminInfo] = useState<AdminInfo>({
+    hospitalName: '',
+    email: '',
+    state: '',
+    district: ''
+  })
+  const [analyticsData, setAnalyticsData] = useState({
+    totalPatients: 0,
+    totalDoctors: 0,
+    totalAppointments: 0
+  })
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.replace('/admin/login')
+        return
+      }
+
+      try {
+        // Fetch admin info
+        const adminDoc = await getDoc(doc(db, 'admins', user.uid))
+        if (adminDoc.exists()) {
+          const data = adminDoc.data()
+          setAdminInfo({
+            hospitalName: data.hospitalName || '',
+            email: data.email || '',
+            state: data.state || '',
+            district: data.district || ''
+          })
+        }
+
+        // Fetch analytics data
+        const [patientsSnap, doctorsSnap, appointmentsSnap] = await Promise.all([
+          getDocs(collection(db, 'patients')),
+          getDocs(collection(db, 'doctors')),
+          getDocs(collection(db, 'appointments'))
+        ])
+
+        setAnalyticsData({
+          totalPatients: patientsSnap.size,
+          totalDoctors: doctorsSnap.size,
+          totalAppointments: appointmentsSnap.size
+        })
+
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [router])
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      router.replace('/admin/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* User Profile Header */}
-      <div className="bg-white shadow mb-6">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white text-xl font-semibold">
-              S
-            </div>
-            <div className="ml-4">
-              <h1 className="text-lg font-semibold">Sarah Johnson</h1>
-              <p className="text-sm text-gray-500">sarah.johnson@mediconnect.com</p>
-            </div>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-end items-center mb-8">
+          <div className="relative">
+            <button
+              className="flex items-center space-x-2 text-black hover:text-[#0D6C7E]"
+              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+            >
+              <FaUserCircle className="h-6 w-6 text-[#0D6C7E]" />
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-medium text-black">{adminInfo.hospitalName}</span>
+                <span className="text-xs text-black">{adminInfo.email}</span>
+              </div>
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+
+            {showProfileDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                <button 
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white shadow mb-6">
-        <div className="container mx-auto px-4">
-          <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('appointments')}
-              className={`${activeTab === 'appointments'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Appointments
-            </button>
-            <button
-              onClick={() => setActiveTab('incoming')}
-              className={`${activeTab === 'incoming'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Incoming Requests
-            </button>
-            <button
-              onClick={() => setActiveTab('patients')}
-              className={`${activeTab === 'patients'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Patients
-            </button>
-            <button
-              onClick={() => setActiveTab('doctors')}
-              className={`${activeTab === 'doctors'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Doctors
-            </button>
-            <button
-              onClick={() => setActiveTab('departments')}
-              className={`${activeTab === 'departments'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Departments
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`${activeTab === 'analytics'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-                } px-3 py-4 text-sm font-medium`}
-            >
-              Analytics
-            </button>
-          </nav>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="border-b border-gray-200">
+            <nav className="flex">
+              <button
+                onClick={() => setActiveTab('requests')}
+                className={`px-6 py-4 text-sm font-medium ${activeTab === 'requests'
+                  ? 'text-[#0D6C7E] border-b-2 border-[#0D6C7E]'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Incoming Requests
+              </button>
+              <button
+                onClick={() => setActiveTab('patients')}
+                className={`px-6 py-4 text-sm font-medium ${activeTab === 'patients'
+                  ? 'text-[#0D6C7E] border-b-2 border-[#0D6C7E]'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Patients
+              </button>
+              <button
+                onClick={() => setActiveTab('doctors')}
+                className={`px-6 py-4 text-sm font-medium ${activeTab === 'doctors'
+                  ? 'text-[#0D6C7E] border-b-2 border-[#0D6C7E]'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Doctors
+              </button>
+              <button
+                onClick={() => setActiveTab('departments')}
+                className={`px-6 py-4 text-sm font-medium ${activeTab === 'departments'
+                  ? 'text-[#0D6C7E] border-b-2 border-[#0D6C7E]'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Departments
+              </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`px-6 py-4 text-sm font-medium ${activeTab === 'analytics'
+                  ? 'text-[#0D6C7E] border-b-2 border-[#0D6C7E]'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Analytics
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {activeTab === 'patients' && <PatientList />}
+            {activeTab === 'doctors' && <DoctorList />}
+            {activeTab === 'departments' && <DepartmentList />}
+            {activeTab === 'analytics' && <Analytics />}
+            {activeTab === 'requests' && <IncomingRequests />}
+          </div>
         </div>
-      </div>
-
-      {/* Content Area */}
-      <div className="container mx-auto px-4 py-8">
-        {activeTab === 'appointments' && <AppointmentList />}
-        {activeTab === 'incoming' && <IncomingRequests />}
-        {activeTab === 'patients' && <PatientList />}
-        {activeTab === 'doctors' && <DoctorList />}
-        {activeTab === 'departments' && <DepartmentList />}
-        {activeTab === 'analytics' && <Analytics data={analyticsData} />}
       </div>
     </div>
   )

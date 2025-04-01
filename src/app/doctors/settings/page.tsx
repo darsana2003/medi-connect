@@ -17,7 +17,7 @@ interface WorkingHours {
 export default function DoctorSettings() {
   const router = useRouter()
   const [doctorName, setDoctorName] = useState('')
-  const [activeTab, setActiveTab] = useState<'schedule' | 'notifications' | 'security'>('schedule')
+  const [activeTab, setActiveTab] = useState('workingHours')
   
   const [formData, setFormData] = useState({
     workingHours: [
@@ -53,78 +53,64 @@ export default function DoctorSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F4F4]">
+    <div className="min-h-screen bg-[#F4F4F4] p-8">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="relative w-[40px] h-[40px] flex-shrink-0">
-                <Image
-                  src="/medib.png"
-                  alt="MediConnect Logo"
-                  fill
-                  sizes="40px"
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <h1 className="text-2xl font-bold text-[#0D6C7E]">Settings</h1>
-            </div>
-            
-            <Link 
-              href="/doctors/dashboard"
-              className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
-            >
-              Back to Dashboard
-            </Link>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="relative w-[40px] h-[40px] flex-shrink-0">
+            <Image
+              src="/medib.png"
+              alt="MediConnect Logo"
+              fill
+              sizes="40px"
+              className="object-contain"
+              priority
+            />
           </div>
+          <h1 className="text-3xl font-bold text-[#0D6C7E]">Settings</h1>
         </div>
-      </header>
+        <Link 
+          href="/doctors/dashboard"
+          className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
-          {/* Tabs */}
-          <div className="flex space-x-4 border-b border-gray-200 mb-6">
+      {/* Settings Tabs */}
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="border-b">
+          <nav className="flex">
             <button
-              onClick={() => setActiveTab('schedule')}
-              className={`pb-4 px-4 ${
-                activeTab === 'schedule'
+              className={`px-6 py-4 text-sm font-medium ${
+                activeTab === 'workingHours'
                   ? 'border-b-2 border-[#0D6C7E] text-[#0D6C7E]'
                   : 'text-gray-500 hover:text-[#0D6C7E]'
               }`}
+              onClick={() => setActiveTab('workingHours')}
             >
               Working Hours
             </button>
             <button
-              onClick={() => setActiveTab('notifications')}
-              className={`pb-4 px-4 ${
-                activeTab === 'notifications'
-                  ? 'border-b-2 border-[#0D6C7E] text-[#0D6C7E]'
-                  : 'text-gray-500 hover:text-[#0D6C7E]'
-              }`}
-            >
-              Notifications
-            </button>
-            <button
-              onClick={() => setActiveTab('security')}
-              className={`pb-4 px-4 ${
+              className={`px-6 py-4 text-sm font-medium ${
                 activeTab === 'security'
                   ? 'border-b-2 border-[#0D6C7E] text-[#0D6C7E]'
                   : 'text-gray-500 hover:text-[#0D6C7E]'
               }`}
+              onClick={() => setActiveTab('security')}
             >
               Security
             </button>
-          </div>
+          </nav>
+        </div>
 
-          {/* Working Hours Settings */}
-          {activeTab === 'schedule' && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-[#0D6C7E]">Working Hours</h3>
+        {/* Tab Content */}
+        <div className="p-6">
+          {activeTab === 'workingHours' && (
+            <div>
+              <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Working Hours</h2>
               {formData.workingHours.map((day, index) => (
-                <div key={day.day} className="border-b pb-4 last:border-0">
+                <div key={day.day} className="border-b pb-4 last:border-0 text-black">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <input
@@ -201,56 +187,9 @@ export default function DoctorSettings() {
             </div>
           )}
 
-          {/* Notification Settings */}
-          {activeTab === 'notifications' && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-[#0D6C7E]">Notification Preferences</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-[#04282E]">Appointment Reminders</h4>
-                    <p className="text-sm text-gray-500">Get email reminders for upcoming appointments</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.notifications.appointmentReminders}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      notifications: { ...formData.notifications, appointmentReminders: e.target.checked }
-                    })}
-                    className="h-4 w-4 text-[#0D6C7E]"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-[#04282E]">Appointment Updates</h4>
-                    <p className="text-sm text-gray-500">Get notified when appointments are cancelled or rescheduled</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.notifications.appointmentUpdates}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      notifications: { ...formData.notifications, appointmentUpdates: e.target.checked }
-                    })}
-                    className="h-4 w-4 text-[#0D6C7E]"
-                  />
-                </div>
-
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Note:</span> All notifications will be sent to your registered email address.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Security Settings */}
           {activeTab === 'security' && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-[#0D6C7E]">Security Settings</h3>
+            <div>
+              <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Security Settings</h2>
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-[#04282E]">Session Timeout</h4>
@@ -269,29 +208,89 @@ export default function DoctorSettings() {
                     <option value="120">2 hours</option>
                   </select>
                 </div>
-                <div>
-                  <button
-                    onClick={() => router.push('/doctors/change-password')}
-                    className="text-[#0D6C7E] hover:text-[#0A5A6A] font-medium"
-                  >
-                    Change Password
+                <div className="p-4 border rounded-lg">
+                  <div className="mb-4">
+                    <p className="font-medium text-black">Change Password</p>
+                    <p className="text-sm text-black">Update your account password</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="currentPassword" className="block text-sm font-medium text-black mb-1">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        id="currentPassword"
+                        className="w-full p-2 border rounded-lg text-black"
+                        placeholder="Enter current password"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="newPassword" className="block text-sm font-medium text-black mb-1">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        className="w-full p-2 border rounded-lg text-black"
+                        placeholder="Enter new password"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-black mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        className="w-full p-2 border rounded-lg text-black"
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+
+                    <div className="flex justify-end mt-4">
+                      <button className="bg-[#0D6C7E] text-white px-4 py-2 rounded-lg hover:bg-[#0A5A6A]">
+                        Update Password
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium text-black">Two-Factor Authentication</p>
+                    <p className="text-sm text-black">Add an extra layer of security</p>
+                  </div>
+                  <button className="text-[#0D6C7E] hover:text-[#0A5A6A] font-medium">
+                    Enable
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium text-black">Login History</p>
+                    <p className="text-sm text-black">View your recent login activity</p>
+                  </div>
+                  <button className="text-[#0D6C7E] hover:text-[#0A5A6A] font-medium">
+                    View
                   </button>
                 </div>
               </div>
             </div>
           )}
-
-          {/* Save Button */}
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-3 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D]"
-            >
-              Save Changes
-            </button>
-          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Save Button */}
+      <div className="mt-8 flex justify-end">
+        <button
+          onClick={handleSubmit}
+          className="px-6 py-3 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D]"
+        >
+          Save Changes
+        </button>
+      </div>
     </div>
   )
 } 

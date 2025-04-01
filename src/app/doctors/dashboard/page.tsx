@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { auth, db } from '@/firebase/config'
+import { onAuthStateChanged } from 'firebase/auth'
+import { getDoc, doc, collection, query, where, getDocs } from 'firebase/firestore'
 
 interface Appointment {
   id: string;
@@ -13,55 +16,86 @@ interface Appointment {
   status: 'upcoming' | 'completed' | 'cancelled';
 }
 
+interface DoctorInfo {
+  name: string;
+  hospital: string;
+}
+
 export default function DoctorDashboard() {
   const router = useRouter()
-  const [doctorName, setDoctorName] = useState('')
-  const [hospitalName, setHospitalName] = useState('')
-  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      patientId: 'P001',
-      patientName: 'Alice Johnson',
-      time: '09:00 AM',
-      reason: 'Regular Checkup',
-      status: 'upcoming'
-    },
-    {
-      id: '2',
-      patientId: 'P002',
-      patientName: 'Bob Smith',
-      time: '10:30 AM',
-      reason: 'Follow-up',
-      status: 'upcoming'
-    },
-    {
-      id: '3',
-      patientId: 'P003',
-      patientName: 'Carol White',
-      time: '11:45 AM',
-      reason: 'Consultation',
-      status: 'upcoming'
-    }
-  ])
+  const [doctorInfo, setDoctorInfo] = useState<DoctorInfo>({
+    name: '',
+    hospital: ''
+  })
+  
+  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([])
 
   useEffect(() => {
-    const storedDoctorName = localStorage.getItem('doctorName')
-    const storedHospitalName = localStorage.getItem('hospitalName')
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.replace('/doctors/login')
+        return
+      }
 
-    if (!storedDoctorName) {
-      router.replace('/doctors/login')
-      return
-    }
+      const fetchDoctorData = async () => {
+        try {
+          // Fetch doctor info
+          const doctorDoc = await getDoc(doc(db, 'doctors', user.uid))
+          if (doctorDoc.exists()) {
+            const data = doctorDoc.data()
+            setDoctorInfo({
+              name: data?.name || '',
+              hospital: data?.hospital || ''
+            })
+          }
 
-    setDoctorName(storedDoctorName)
-    setHospitalName(storedHospitalName || '')
+          // Fetch today's appointments
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const tomorrow = new Date(today)
+          tomorrow.setDate(tomorrow.getDate() + 1)
+
+          const appointmentsQuery = query(
+            collection(db, 'appointments'),
+            where('doctorId', '==', user.uid),
+            where('date', '>=', today),
+            where('date', '<', tomorrow)
+          )
+
+          const appointmentsSnap = await getDocs(appointmentsQuery)
+          const appointments: Appointment[] = []
+
+          for (const doc of appointmentsSnap.docs) {
+            const data = doc.data()
+            appointments.push({
+              id: doc.id,
+              patientId: data.patientId,
+              patientName: data.patientName,
+              time: data.time,
+              reason: data.reason,
+              status: data.status
+            })
+          }
+
+          setTodayAppointments(appointments)
+        } catch (error) {
+          console.error('Error fetching data:', error)
+        }
+      }
+
+      fetchDoctorData()
+    })
+
+    return () => unsubscribe()
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem('doctorName')
-    localStorage.removeItem('doctorId')
-    localStorage.removeItem('hospitalName')
-    router.replace('/doctors/login')
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      router.replace('/doctors/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
   const getCurrentDate = () => {
@@ -73,7 +107,7 @@ export default function DoctorDashboard() {
     })
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: Appointment['status']) => {
     switch (status) {
       case 'upcoming':
         return 'bg-blue-100 text-blue-800'
@@ -86,8 +120,12 @@ export default function DoctorDashboard() {
     }
   }
 
-  const viewPatientRecords = (patientId: string, patientName: string) => {
-    router.push(`/doctors/patient-records/${patientId}?name=${encodeURIComponent(patientName)}`)
+  const viewPatientRecords = (patientId: string) => {
+    try {
+      router.push(`/doctors/patient-records/${patientId}`)
+    } catch (error) {
+      console.error('Error navigating to patient records:', error)
+    }
   }
 
   return (
@@ -107,13 +145,13 @@ export default function DoctorDashboard() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, Dr. John Doe</h1>
-                <p className="text-[#04282E]">City Hospital</p>
+                <h1 className="text-2xl font-bold text-[#0D6C7E]">Welcome, {doctorInfo.name}</h1>
+                <p className="text-[#04282E]">{doctorInfo.hospital}</p>
               </div>
             </div>
             
             <button
-              onClick={() => router.push('/doctors/login')}
+              onClick={handleLogout}
               className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
             >
               Logout
@@ -125,7 +163,7 @@ export default function DoctorDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-[#E0E0E0] p-6">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorName}!</h2>
+            <h2 className="text-2xl font-bold text-[#0D6C7E]">Welcome back, {doctorInfo.name}!</h2>
             <p className="text-[#04282E] mt-2">Today is {getCurrentDate()}</p>
           </div>
 
@@ -148,7 +186,7 @@ export default function DoctorDashboard() {
                         {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                       </span>
                       <button
-                        onClick={() => viewPatientRecords(appointment.patientId, appointment.patientName)}
+                        onClick={() => viewPatientRecords(appointment.patientId)}
                         className="text-[#0D6C7E] hover:text-[#08505D] font-medium flex items-center space-x-1"
                       >
                         <span>View Records</span>
