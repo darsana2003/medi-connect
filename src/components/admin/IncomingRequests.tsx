@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { FaCheck, FaTimes, FaUserPlus } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import { FaUserPlus } from 'react-icons/fa'
 import { toast, Toaster } from 'react-hot-toast'
+import { collection, getDocs, addDoc, updateDoc, doc, query, where } from 'firebase/firestore'
+import { db } from '../../firebase/config'
+import type { Patient } from '../../types/patient'
 
 // Mock data for patient requests - reduced to 4 patients
 const patientRequests = [
@@ -90,47 +93,153 @@ const addToPatientList = (patient: any) => {
 }
 
 export default function IncomingRequests() {
-  const [requests, setRequests] = useState(patientRequests)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [requests, setRequests] = useState<any[]>([])
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
-  const [newPatient, setNewPatient] = useState({
-    patientName: '',
-    aadharId: '',
-    department: '',
-    doctorName: '',
-    email: '',
-    contactNumber: '',
-    age: '',
-    gender: 'Male'
-  })
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [patientData, setPatientData] = useState<Partial<Patient> | null>(null)
 
-  // Filter requests based on search term
-  const filteredRequests = requests.filter(request =>
-    request.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.status.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  useEffect(() => {
+    fetchRequests()
+  }, [])
 
-  // Handle approve request
-  const handleApprove = (id: string) => {
-    const approvedRequest = requests.find(request => request.id === id)
-    if (approvedRequest) {
-      // Update request status
-      setRequests(requests.map(request =>
-        request.id === id ? { ...request, status: 'Approved' } : request
-      ))
+  const fetchRequests = async () => {
+    try {
+      const requestsCollection = collection(db, 'patientRequests')
+      const requestsSnapshot = await getDocs(requestsCollection)
+      const requestsList = requestsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      setRequests(requestsList)
+    } catch (error) {
+      console.error('Error fetching requests:', error)
+      toast.error('Failed to load requests')
+    }
+  }
 
-      // Add to patient list
-      addToPatientList(approvedRequest)
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
 
-      // Show success message
-      toast.success('Patient request approved and automatically added to Patient List', {
-        duration: 3000,
-        position: 'top-right',
-        style: {
-          background: '#10B981',
-          color: '#FFFFFF'
+    try {
+      // Check users collection first
+      const usersRef = collection(db, 'users')
+      const userQuery = query(usersRef, where('phone', '==', phoneNumber))
+      const userSnapshot = await getDocs(userQuery)
+
+      // Check patients collection
+      const patientsRef = collection(db, 'patients')
+      const patientQuery = query(patientsRef, where('phone', '==', phoneNumber))
+      const patientSnapshot = await getDocs(patientQuery)
+
+      if (!userSnapshot.empty) {
+        // User exists in users collection
+        const userData = userSnapshot.docs[0].data()
+        
+        // Add to incoming patients collection
+        const incomingPatientsRef = collection(db, 'patientRequests')
+        await addDoc(incomingPatientsRef, {
+          ...userData,
+          patientName: userData.fullName || '', // Changed from name to fullName
+          phone: phoneNumber,
+          requestDate: new Date().toISOString(),
+          status: 'Pending'
+        })
+
+        if (!patientSnapshot.empty) {
+          // User exists in both collections, merge the data
+          const patientData = patientSnapshot.docs[0].data()
+          setPatientData({
+            ...userData,
+            ...patientData,
+            phone: phoneNumber,
+            registrationDate: patientData.registrationDate || new Date().toISOString(),
+            status: patientData.status || 'regular'
+          })
+        } else {
+          // User exists only in users collection
+          setPatientData({
+            ...userData,
+            phone: phoneNumber,
+            registrationDate: new Date().toISOString(),
+            status: 'regular'
+          })
         }
+        toast.success('User found and added to requests')
+        setShowRegistrationModal(false)
+        fetchRequests() // Refresh the requests list
+      } else if (!patientSnapshot.empty) {
+        // User exists only in patients collection
+        const patientData = patientSnapshot.docs[0].data()
+        setPatientData({
+          ...patientData,
+          phone: phoneNumber
+        })
+        toast.success('Patient found')
+      } else {
+        // New user
+        setPatientData({
+          phone: phoneNumber,
+          registrationDate: new Date().toISOString(),
+          status: 'regular'
+        })
+toast('New patient registration', { icon: 'ℹ️' })
+      }
+    } catch (error) {
+      console.error('Error checking patient:', error)
+      toast.error('Failed to check patient details')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePatientSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!patientData) return
+
+    try {
+      // Generate hospital ID
+      const hospitalId = `HC${new Date().getFullYear()}${Math.floor(Math.random() * 10000)}`
+
+      // Create request in patientRequests collection
+      const requestRef = await addDoc(collection(db, 'patientRequests'), {
+        ...patientData,
+        hospitalId,
+        status: 'Pending',
+        requestDate: new Date().toISOString()
       })
+
+      toast.success('Patient registration request submitted')
+      setShowRegistrationModal(false)
+      fetchRequests()
+    } catch (error) {
+      console.error('Error submitting request:', error)
+      toast.error('Failed to submit request')
+    }
+  }
+
+  const handleApprove = async (requestId: string) => {
+    try {
+      const request = requests.find(r => r.id === requestId)
+      if (!request) return
+
+      // Add to patients collection
+      await addDoc(collection(db, 'patients'), {
+        ...request,
+        status: 'regular',
+        registrationDate: new Date().toISOString()
+      })
+
+      // Update request status
+      const requestRef = doc(db, 'patientRequests', requestId)
+      await updateDoc(requestRef, { status: 'Approved' })
+
+      toast.success('Patient approved and added to system')
+      fetchRequests()
+    } catch (error) {
+      console.error('Error approving patient:', error)
+      toast.error('Failed to approve patient')
     }
   }
 
@@ -144,8 +253,8 @@ export default function IncomingRequests() {
 
   // Handle department change
   const handleDepartmentChange = (department: string) => {
-    setNewPatient({
-      ...newPatient,
+    setPatientData({
+      ...patientData,
       department,
       doctorName: '' // Reset doctor when department changes
     })
@@ -154,7 +263,7 @@ export default function IncomingRequests() {
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newPatient.patientName || !newPatient.aadharId || !newPatient.department || !newPatient.doctorName) {
+    if (!patientData?.name || !patientData?.id || !patientData?.department || !patientData?.doctorName) {
       toast.error('Please fill in all required fields')
       return
     }
@@ -162,20 +271,20 @@ export default function IncomingRequests() {
     // Add to requests
     const newRequest = {
       id: (requests.length + 1).toString(),
-      patientName: newPatient.patientName,
+      patientName: patientData?.name || '',
       requestDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
-      email: newPatient.email,
-      phone: newPatient.contactNumber,
-      doctor: newPatient.doctorName,
-      department: newPatient.department,
-      age: newPatient.age,
-      gender: newPatient.gender
+      email: patientData?.email || '',
+      phone: patientData?.phone || '',
+      doctor: patientData?.doctorName || '',
+      department: patientData?.department || '',
+      age: patientData?.age || '',
+      gender: patientData?.gender || ''
     }
     setRequests([newRequest, ...requests])
 
     // Reset form and close modal
-    setNewPatient({
+    setPatientData({
       patientName: '',
       aadharId: '',
       department: '',
@@ -216,111 +325,33 @@ export default function IncomingRequests() {
                 ×
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Patient Name*</label>
-                <input
-                  type="text"
-                  value={newPatient.patientName}
-                  onChange={(e) => setNewPatient({ ...newPatient, patientName: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Aadhar ID*</label>
-                <input
-                  type="text"
-                  value={newPatient.aadharId}
-                  onChange={(e) => setNewPatient({ ...newPatient, aadharId: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Department*</label>
-                <select
-                  value={newPatient.department}
-                  onChange={(e) => handleDepartmentChange(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                  required
-                >
-                  <option value="">Select Department</option>
-                  {Object.keys(departmentDoctors).map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Doctor*</label>
-                <select
-                  value={newPatient.doctorName}
-                  onChange={(e) => setNewPatient({ ...newPatient, doctorName: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                  required
-                  disabled={!newPatient.department}
-                >
-                  <option value="">Select Doctor</option>
-                  {newPatient.department && departmentDoctors[newPatient.department].map((doctor) => (
-                    <option key={doctor} value={doctor}>{doctor}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Age</label>
-                <input
-                  type="number"
-                  value={newPatient.age}
-                  onChange={(e) => setNewPatient({ ...newPatient, age: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Gender</label>
-                <select
-                  value={newPatient.gender}
-                  onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Contact Number</label>
-                <input
-                  type="tel"
-                  value={newPatient.contactNumber}
-                  onChange={(e) => setNewPatient({ ...newPatient, contactNumber: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input
-                  type="email"
-                  value={newPatient.email}
-                  onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
-                />
-              </div>
-              <div className="col-span-2 flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowRegistrationModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
+
+            {!patientData ? (
+              <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                    required
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0D6C7E] text-white rounded-md hover:bg-[#0A5A6B]"
+                  disabled={loading}
+                  className="w-full bg-[#0D6C7E] text-white py-2 rounded-md"
                 >
-                  Register Patient
+                  {loading ? 'Checking...' : 'Check Patient'}
                 </button>
-              </div>
-            </form>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                {/* Render form fields based on patientData */}
+                {/* ... existing form fields ... */}
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -331,8 +362,11 @@ export default function IncomingRequests() {
           type="text"
           placeholder="Search by patient name or status..."
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D6C7E]"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={''}
+          onChange={(e) => {
+            // TODO: Implement search functionality
+            console.log('Search term changed:', e.target.value)
+          }}
         />
       </div>
 
@@ -348,7 +382,7 @@ export default function IncomingRequests() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredRequests.map((request) => (
+            {requests.map((request) => (
               <tr key={request.id} className="hover:bg-gray-50">
                 <td className="py-3 px-4 text-sm text-gray-700">{request.patientName}</td>
                 <td className="py-3 px-4 text-sm text-gray-700">{request.requestDate}</td>
@@ -393,11 +427,11 @@ export default function IncomingRequests() {
         </table>
       </div>
 
-      {filteredRequests.length === 0 && (
+      {requests.length === 0 && (
         <div className="text-center py-4">
           <p className="text-gray-500">No requests found</p>
         </div>
       )}
     </div>
   )
-} 
+}

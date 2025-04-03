@@ -1,12 +1,16 @@
 'use client'
 
+// Update imports
 import { useState, useEffect } from 'react'
 import { toast, Toaster } from 'react-hot-toast'
 import { FaSearch, FaEdit, FaEye } from 'react-icons/fa'
+// Add setDoc to imports
+import { collection, getDocs, updateDoc, doc, setDoc } from 'firebase/firestore'
+import { db } from '../../firebase/config'
 
 interface Patient {
   id: string
-  name: string
+  fullName: string
   age: number
   gender: string
   contactNumber: string
@@ -28,39 +32,38 @@ export default function PatientList() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editPatient, setEditPatient] = useState<Patient | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Load patients from localStorage on component mount
+  // Replace localStorage logic with Firestore fetch
   useEffect(() => {
-    const storedPatients = localStorage.getItem('patientList')
-    if (storedPatients) {
-      setPatients(JSON.parse(storedPatients))
-    }
-  }, [])
-
-  // Listen for updates from IncomingRequests component
-  useEffect(() => {
-    const handlePatientListUpdate = () => {
-      const storedPatients = localStorage.getItem('patientList')
-      if (storedPatients) {
-        setPatients(JSON.parse(storedPatients))
+    const fetchPatients = async () => {
+      try {
+        const patientsRef = collection(db, 'patients')
+        const snapshot = await getDocs(patientsRef)
+        const patientsList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Patient[]
+        setPatients(patientsList)
+      } catch (error) {
+        console.error('Error fetching patients:', error)
+        toast.error('Failed to load patients')
+      } finally {
+        setLoading(false)
       }
     }
 
-    // Listen for the custom event
-    window.addEventListener('patientListUpdated', handlePatientListUpdate)
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('patientListUpdated', handlePatientListUpdate)
-    }
+    fetchPatients()
   }, [])
+
+  // Remove localStorage event listener useEffect as it's no longer needed
 
   // Filter patients based on search term
   const filteredPatients = patients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.status.toLowerCase().includes(searchTerm.toLowerCase())
+    (patient.fullName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (patient.doctorName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (patient.department?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (patient.status?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
 
   const handleViewDetails = (patient: Patient) => {
@@ -73,11 +76,46 @@ export default function PatientList() {
     setIsEditModalOpen(true)
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editPatient) {
-      setPatients(patients.map(p => p.id === editPatient.id ? editPatient : p))
-      setIsEditModalOpen(false)
-      toast.success('Patient details updated successfully')
+      try {
+        const patientRef = doc(db, 'patients', editPatient.id)
+        const patientData = {
+          fullName: editPatient.fullName || '',
+          age: editPatient.age || 0,
+          gender: editPatient.gender || 'Other',
+          contactNumber: editPatient.contactNumber || '',
+          email: editPatient.email || '',
+          address: editPatient.address || '',
+          department: editPatient.department || '',
+          doctorName: editPatient.doctorName || '',
+          medicalHistory: editPatient.medicalHistory || '',
+          status: editPatient.status || 'Active',
+          lastVisit: editPatient.lastVisit || new Date().toISOString(),
+          nextVisit: editPatient.nextVisit || '',
+          appointmentStatus: editPatient.appointmentStatus || 'Scheduled'
+        }
+
+        // Use updateDoc instead of setDoc to only update existing documents
+        await updateDoc(patientRef, patientData)
+
+        // Update local state and close modal
+        setPatients(patients.map(p => p.id === editPatient.id ? editPatient : p))
+        setIsEditModalOpen(false)
+        toast.success('Patient details updated successfully')
+        
+        // Refresh the patient list
+        const patientsRef = collection(db, 'patients')
+        const snapshot = await getDocs(patientsRef)
+        const patientsList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Patient[]
+        setPatients(patientsList)
+      } catch (error) {
+        console.error('Error updating patient:', error)
+        toast.error('Failed to update patient details')
+      }
     }
   }
 
@@ -115,7 +153,7 @@ export default function PatientList() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPatients.map((patient) => (
                 <tr key={patient.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{patient.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{patient.fullName}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{patient.lastVisit}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{patient.department}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{patient.doctorName}</td>
@@ -162,7 +200,7 @@ export default function PatientList() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Name</p>
-                <p className="font-medium">{selectedPatient.name}</p>
+                <p className="font-medium">{selectedPatient.fullName}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Age</p>
@@ -240,8 +278,8 @@ export default function PatientList() {
                 <label className="block text-sm font-medium text-gray-700">Name</label>
                 <input
                   type="text"
-                  value={editPatient.name}
-                  onChange={(e) => setEditPatient({ ...editPatient, name: e.target.value })}
+                  value={editPatient.fullName}
+                  onChange={(e) => setEditPatient({ ...editPatient, fullName: e.target.value })}
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#0D6C7E] focus:outline-none focus:ring-[#0D6C7E]"
                 />
               </div>
@@ -352,4 +390,4 @@ export default function PatientList() {
       )}
     </div>
   )
-} 
+}
