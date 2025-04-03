@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast, Toaster } from 'react-hot-toast'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '../../firebase/config'
+import { doc, updateDoc } from 'firebase/firestore'
 
 interface Doctor {
   id: string
@@ -17,80 +20,42 @@ interface Doctor {
 }
 
 export default function DoctorList() {
-  const [doctors, setDoctors] = useState<Doctor[]>([
-    {
-      id: 'D001',
-      name: 'Dr. Radha Krishnan',
-      specialization: 'Cardiology',
-      experience: 12,
-      contactNumber: '+91 9876543220',
-      email: 'radha.krishnan@mediconnect.com',
-      availability: 'Mon, Wed, Fri (9 AM - 5 PM)',
-      address: '123 Medical Plaza, Bangalore',
-      qualification: 'MD, DM Cardiology',
-      status: 'Active'
-    },
-    {
-      id: 'D002',
-      name: 'Dr. Pillar S',
-      specialization: 'Neurology',
-      experience: 15,
-      contactNumber: '+91 9876543221',
-      email: 'pillar.s@mediconnect.com',
-      availability: 'Tue, Thu, Sat (10 AM - 6 PM)',
-      address: '456 Health Avenue, Chennai',
-      qualification: 'MD, DM Neurology',
-      status: 'Active'
-    },
-    {
-      id: 'D003',
-      name: 'Dr. Manmathan K',
-      specialization: 'Orthopedics',
-      experience: 20,
-      contactNumber: '+91 9876543222',
-      email: 'manmathan.k@mediconnect.com',
-      availability: 'Mon, Wed, Fri (10 AM - 7 PM)',
-      address: '789 Care Street, Mumbai',
-      qualification: 'MS Orthopedics',
-      status: 'On Leave'
-    },
-    {
-      id: 'D004',
-      name: 'Dr. Aleena Biju',
-      specialization: 'Dermatology',
-      experience: 8,
-      contactNumber: '+91 9876543223',
-      email: 'aleena.biju@mediconnect.com',
-      availability: 'Mon, Tue, Wed, Thu, Fri (9 AM - 3 PM)',
-      address: '101 Wellness Road, Delhi',
-      qualification: 'MD Dermatology',
-      status: 'Active'
-    },
-    {
-      id: 'D005',
-      name: 'Dr. Thomas T',
-      specialization: 'Gastroenterology',
-      experience: 10,
-      contactNumber: '+91 9876543224',
-      email: 'thomas.t@mediconnect.com',
-      availability: 'Tue, Thu, Sat (9 AM - 5 PM)',
-      address: '202 Health Park, Hyderabad',
-      qualification: 'MD, DM Gastroenterology',
-      status: 'Active'
-    },
-    {
-      id: 'D006',
-      name: 'Dr. Lovely Raj',
-      specialization: 'Pediatrics',
-      experience: 14,
-      contactNumber: '+91 9876543225',
-      email: 'lovely.raj@mediconnect.com',
-      availability: 'Mon, Wed, Fri (8 AM - 4 PM)',
-      address: '303 Child Care Center, Kochi',
-      qualification: 'MD Pediatrics',
-      status: 'Active'
+  const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const doctorsCollection = collection(db, 'doctors')
+        const doctorsSnapshot = await getDocs(doctorsCollection)
+        
+        const doctorsList = doctorsSnapshot.docs.map(doc => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            name: data.name || '',
+            specialization: data.specialization || '',
+            experience: data.experience || 0,
+            contactNumber: data.contactNumber || '',
+            email: data.email || '',
+            availability: data.availability || '',
+            address: data.address || '',
+            qualification: data.qualification || '',
+            status: data.status || 'Active'
+          } as Doctor
+        })
+        
+        setDoctors(doctorsList)
+      } catch (error) {
+        console.error('Error fetching doctors:', error)
+        toast.error('Failed to load doctors')
+      } finally {
+        setLoading(false)
+      }
     }
-  ])
+
+    fetchDoctors()
+  }, [])
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
@@ -115,13 +80,70 @@ export default function DoctorList() {
     setIsEditModalOpen(true)
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editDoctor) {
-      setDoctors(doctors.map(d => d.id === editDoctor.id ? editDoctor : d))
-      setIsEditModalOpen(false)
-      toast.success('Doctor details updated successfully')
+      try {
+        const doctorRef = doc(db, 'doctors', editDoctor.id);
+        await updateDoc(doctorRef, {
+          name: editDoctor.name,
+          specialization: editDoctor.specialization,
+          experience: editDoctor.experience,
+          contactNumber: editDoctor.contactNumber,
+          email: editDoctor.email,
+          availability: editDoctor.availability,
+          address: editDoctor.address,
+          qualification: editDoctor.qualification,
+          status: editDoctor.status
+        });
+  
+        setDoctors(doctors.map(d => d.id === editDoctor.id ? editDoctor : d));
+        setIsEditModalOpen(false);
+        toast.success('Doctor details updated successfully');
+        
+        // Refresh the doctors list
+        fetchDoctors();
+      } catch (error) {
+        console.error('Error updating doctor:', error);
+        toast.error('Failed to update doctor details');
+      }
     }
-  }
+  };
+
+  // Move fetchDoctors outside useEffect so it can be reused
+  const fetchDoctors = async () => {
+    try {
+      const doctorsCollection = collection(db, 'doctors');
+      const doctorsSnapshot = await getDocs(doctorsCollection);
+      
+      const doctorsList = doctorsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || '',
+          specialization: data.specialization || '',
+          experience: data.experience || 0,
+          contactNumber: data.contactNumber || '',
+          email: data.email || '',
+          availability: data.availability || '',
+          address: data.address || '',
+          qualification: data.qualification || '',
+          status: data.status || 'Active'
+        } as Doctor;
+      });
+      
+      setDoctors(doctorsList);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      toast.error('Failed to load doctors');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update useEffect to use the extracted fetchDoctors function
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
@@ -147,7 +169,11 @@ export default function DoctorList() {
         </div>
       </div>
 
-      {filteredDoctors.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-4">
+          <p className="text-gray-500">Loading doctors...</p>
+        </div>
+      ) : filteredDoctors.length === 0 ? (
         <p className="text-gray-500">No doctors found.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -379,4 +405,4 @@ export default function DoctorList() {
       )}
     </div>
   )
-} 
+}
