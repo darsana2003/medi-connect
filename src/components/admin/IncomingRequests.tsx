@@ -177,15 +177,18 @@ export default function IncomingRequests() {
     try {
       setVerificationLoading(true);
 
-      const response = await fetch("http://192.168.1.7:5000/api/send-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone: `+91${mobileNumber}`,
-        }),
-      });
+      const response = await fetch(
+        "https://crucial-heloise-mainproject-a3e136c7.koyeb.app/api/send-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone: `+91${mobileNumber}`,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (data.success) {
@@ -209,16 +212,19 @@ export default function IncomingRequests() {
     try {
       setVerificationLoading(true);
 
-      const response = await fetch("http://192.168.1.7:5000/api/verify-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone: `+91${patientData.phone}`,
-          otp: otpValue,
-        }),
-      });
+      const response = await fetch(
+        "https://crucial-heloise-mainproject-a3e136c7.koyeb.app/api/verify-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone: `+91${patientData.phone}`,
+            otp: otpValue,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (data.success) {
