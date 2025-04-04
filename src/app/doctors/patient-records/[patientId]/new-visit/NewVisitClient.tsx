@@ -1,185 +1,200 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { db, auth } from "@/firebase/config";
+import {
+  doc,
+  getDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { toast } from "react-hot-toast";
+
+interface PatientData {
+  id: string;
+  name: string;
+  patientName: string;
+  age: number;
+  gender: string;
+  phone: string;
+  email: string;
+}
+
+interface Medication {
+  name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  instructions: string;
+}
 
 export default function NewVisitClient({ patientId }: { patientId: string }) {
-  const router = useRouter()
-  const [formData, setFormData] = useState({
-    vitalSigns: {
-      bloodPressure: '',
-      heartRate: '',
-      temperature: '',
-      oxygenSaturation: '',
-      respiratoryRate: ''
-    },
-    labResults: {
-      bloodSugar: {
-        fasting: '',
-        postPrandial: '',
-        hba1c: ''
-      },
-      cholesterol: {
-        total: '',
-        hdl: '',
-        ldl: '',
-        triglycerides: ''
-      }
-    },
-    doctorFindings: {
-      symptoms: [''],
-      diagnosis: '',
-      notes: ''
-    },
-    prescription: {
-      medications: [{
-        name: '',
-        dosage: '',
-        frequency: '',
-        duration: '',
-        instructions: ''
-      }]
-    },
-    allergies: {
-      medications: [''],
-      food: [''],
-      other: ''
-    },
-    testReports: [{
-      name: '',
-      date: '',
-      result: '',
-      normalRange: '',
-      notes: '',
-      files: [] as File[]
-    }]
-  })
+  const router = useRouter();
+  const [patientData, setPatientData] = useState<PatientData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const addSymptom = () => {
-    setFormData({
-      ...formData,
-      doctorFindings: {
-        ...formData.doctorFindings,
-        symptoms: [...formData.doctorFindings.symptoms, '']
-      }
-    })
-  }
+  // Form state
+  const [visitDate, setVisitDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [bloodPressure, setBloodPressure] = useState("");
+  const [heartRate, setHeartRate] = useState("");
+  const [temperature, setTemperature] = useState("");
+  const [oxygenSaturation, setOxygenSaturation] = useState("");
+  const [respiratoryRate, setRespiratoryRate] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [prescription, setPrescription] = useState("");
+  const [notes, setNotes] = useState("");
+  const [medications, setMedications] = useState<Medication[]>([]);
 
-  const removeSymptom = (index: number) => {
-    const newSymptoms = formData.doctorFindings.symptoms.filter((_, i) => i !== index)
-    setFormData({
-      ...formData,
-      doctorFindings: {
-        ...formData.doctorFindings,
-        symptoms: newSymptoms
+  useEffect(() => {
+    fetchPatientData();
+  }, [patientId]);
+
+  const fetchPatientData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch patient data
+      const patientDoc = await getDoc(doc(db, "patientRequests", patientId));
+
+      if (!patientDoc.exists()) {
+        toast.error("Patient not found");
+        router.push("/doctors/dashboard");
+        return;
       }
-    })
-  }
+
+      const patient = patientDoc.data();
+      setPatientData({
+        id: patientId,
+        name: patient.patientName || patient.name || "Unknown",
+        patientName: patient.patientName || patient.name || "Unknown",
+        age: patient.age || 0,
+        gender: patient.gender || "Unknown",
+        phone: patient.phone || "",
+        email: patient.email || "",
+      });
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+      toast.error("Failed to load patient data");
+      setLoading(false);
+    }
+  };
 
   const addMedication = () => {
-    setFormData({
-      ...formData,
-      prescription: {
-        medications: [
-          ...formData.prescription.medications,
-          { name: '', dosage: '', frequency: '', duration: '', instructions: '' }
-        ]
-      }
-    })
-  }
+    const newMedication = {
+      name: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      instructions: "",
+    };
+
+    setMedications([...medications, newMedication]);
+  };
+
+  const updateMedication = (
+    index: number,
+    field: keyof Medication,
+    value: string
+  ) => {
+    const updatedMedications = [...medications];
+    updatedMedications[index] = {
+      ...updatedMedications[index],
+      [field]: value,
+    };
+
+    setMedications(updatedMedications);
+  };
 
   const removeMedication = (index: number) => {
-    const newMedications = formData.prescription.medications.filter((_, i) => i !== index)
-    setFormData({
-      ...formData,
-      prescription: {
-        medications: newMedications
-      }
-    })
-  }
+    const updatedMedications = [...medications];
+    updatedMedications.splice(index, 1);
 
-  const addAllergy = (type: 'medications' | 'food') => {
-    setFormData({
-      ...formData,
-      allergies: {
-        ...formData.allergies,
-        [type]: [...formData.allergies[type], '']
-      }
-    })
-  }
+    setMedications(updatedMedications);
+  };
 
-  const removeAllergy = (type: 'medications' | 'food', index: number) => {
-    const newAllergies = formData.allergies[type].filter((_, i) => i !== index)
-    setFormData({
-      ...formData,
-      allergies: {
-        ...formData.allergies,
-        [type]: newAllergies
-      }
-    })
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const addTestReport = () => {
-    setFormData({
-      ...formData,
-      testReports: [
-        ...formData.testReports,
-        {
-          name: '',
-          date: '',
-          result: '',
-          normalRange: '',
-          notes: '',
-          files: []
-        }
-      ]
-    })
-  }
-
-  const removeTestReport = (index: number) => {
-    const newTestReports = formData.testReports.filter((_, i) => i !== index)
-    setFormData({
-      ...formData,
-      testReports: newTestReports
-    })
-  }
-
-  const handleFileUpload = (index: number, files: FileList | null) => {
-    if (!files) return
-
-    const newTestReports = [...formData.testReports]
-    newTestReports[index] = {
-      ...newTestReports[index],
-      files: [...newTestReports[index].files, ...Array.from(files)]
+    if (!patientData) {
+      toast.error("Patient data is missing");
+      return;
     }
-    setFormData({
-      ...formData,
-      testReports: newTestReports
-    })
-  }
 
-  const removeFile = (reportIndex: number, fileIndex: number) => {
-    const newTestReports = [...formData.testReports]
-    newTestReports[reportIndex] = {
-      ...newTestReports[reportIndex],
-      files: newTestReports[reportIndex].files.filter((_, i) => i !== fileIndex)
+    try {
+      setSaving(true);
+
+      // Get current user (doctor) information
+      const currentUser = auth.currentUser;
+      const doctorId = currentUser?.uid || "";
+      const doctorName = currentUser?.displayName || "";
+
+      // Create visit data
+      const visitData = {
+        date: visitDate,
+        vitalSigns: {
+          bloodPressure,
+          heartRate,
+          temperature,
+          oxygenSaturation,
+          respiratoryRate,
+        },
+        diagnosis,
+        prescription,
+        medications,
+        notes,
+        doctorId,
+        doctorName,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      // Add to visits subcollection
+      const visitsRef = collection(db, "patientRequests", patientId, "visits");
+      const newVisitRef = await addDoc(visitsRef, visitData);
+
+      toast.success("Visit record created successfully");
+
+      // Redirect to the visit details page
+      router.push(
+        `/doctors/patient-records/${patientId}/visits/${newVisitRef.id}`
+      );
+    } catch (error) {
+      console.error("Error saving visit:", error);
+      toast.error("Failed to save visit record");
+      setSaving(false);
     }
-    setFormData({
-      ...formData,
-      testReports: newTestReports
-    })
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F4F4F4] p-8 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#0D6C7E] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Form submitted:', formData)
-    router.push(`/doctors/patient-records/${patientId}`)
+  if (!patientData) {
+    return (
+      <div className="min-h-screen bg-[#F4F4F4] p-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">Patient not found</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-[#F4F4F4] p-8">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-4">
           <div className="relative w-[40px] h-[40px] flex-shrink-0">
@@ -192,515 +207,292 @@ export default function NewVisitClient({ patientId }: { patientId: string }) {
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-[#0D6C7E]">New Visit Record</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-[#0D6C7E]">
+              New Visit Record
+            </h1>
+            <p className="text-[#04282E]">Patient: {patientData.name}</p>
+          </div>
         </div>
-        <Link 
+        <Link
           href={`/doctors/patient-records/${patientId}`}
-          className="text-[#0D6C7E] hover:text-[#0A5A6A] font-semibold"
+          className="px-4 py-2 bg-[#04282E] text-white rounded-lg hover:bg-[#031D22]"
         >
-          Back to Patient Record
+          Cancel
         </Link>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Vital Signs */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Vital Signs</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(formData.vitalSigns).map(([key, value]) => (
-              <div key={key}>
-                <label className="block text-[#04282E] font-medium mb-2">
-                  {key.split(/(?=[A-Z])/).join(' ')}
+      {/* Form */}
+      <form onSubmit={handleSubmit}>
+        <div className="space-y-6">
+          {/* Visit Date */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">
+              Visit Information
+            </h2>
+            <div className="max-w-md">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Visit Date
+              </label>
+              <input
+                type="date"
+                value={visitDate}
+                onChange={(e) => setVisitDate(e.target.value)}
+                className="w-full p-2 border rounded-lg"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Vital Signs */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">
+              Vital Signs
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Blood Pressure (mmHg)
                 </label>
                 <input
                   type="text"
-                  className="w-full p-2 border rounded-lg text-black"
-                  placeholder={key === 'bloodPressure' ? '120/80 mmHg' : ''}
-                  value={value}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    vitalSigns: { ...formData.vitalSigns, [key]: e.target.value }
-                  })}
+                  placeholder="e.g. 120/80"
+                  value={bloodPressure}
+                  onChange={(e) => setBloodPressure(e.target.value)}
+                  className="w-full p-2 border rounded-lg"
+                  required
                 />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Lab Results */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Lab Results</h2>
-          
-          {/* Blood Sugar */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-[#0D6C7E] mb-3">Blood Sugar</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(formData.labResults.bloodSugar).map(([key, value]) => (
-                <div key={key}>
-                  <label className="block text-[#04282E] font-medium mb-2">
-                    {key.split(/(?=[A-Z])/).join(' ')}
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-lg text-black"
-                    value={value}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      labResults: {
-                        ...formData.labResults,
-                        bloodSugar: { ...formData.labResults.bloodSugar, [key]: e.target.value }
-                      }
-                    })}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Cholesterol */}
-          <div>
-            <h3 className="text-lg font-medium text-[#0D6C7E] mb-3">Cholesterol</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(formData.labResults.cholesterol).map(([key, value]) => (
-                <div key={key}>
-                  <label className="block text-[#04282E] font-medium mb-2">
-                    {key.toUpperCase()}
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-lg text-black"
-                    value={value}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      labResults: {
-                        ...formData.labResults,
-                        cholesterol: { ...formData.labResults.cholesterol, [key]: e.target.value }
-                      }
-                    })}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Doctor's Findings */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Doctor's Findings</h2>
-          
-          {/* Symptoms */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-medium text-[#0D6C7E]">Symptoms</h3>
-              <button
-                type="button"
-                onClick={addSymptom}
-                className="text-[#0D6C7E] hover:text-[#0A5A6A]"
-              >
-                + Add Symptom
-              </button>
-            </div>
-            {formData.doctorFindings.symptoms.map((symptom, index) => (
-              <div key={index} className="flex gap-2 mb-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Heart Rate (bpm)
+                </label>
                 <input
                   type="text"
-                  className="flex-1 p-2 border rounded-lg text-black"
-                  value={symptom}
-                  onChange={(e) => {
-                    const newSymptoms = [...formData.doctorFindings.symptoms]
-                    newSymptoms[index] = e.target.value
-                    setFormData({
-                      ...formData,
-                      doctorFindings: {
-                        ...formData.doctorFindings,
-                        symptoms: newSymptoms
-                      }
-                    })
-                  }}
+                  placeholder="e.g. 72"
+                  value={heartRate}
+                  onChange={(e) => setHeartRate(e.target.value)}
+                  className="w-full p-2 border rounded-lg"
+                  required
                 />
-                {formData.doctorFindings.symptoms.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeSymptom(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                )}
               </div>
-            ))}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Temperature (°C)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 37.0"
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                  className="w-full p-2 border rounded-lg"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Oxygen Saturation (%)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 98%"
+                  value={oxygenSaturation}
+                  onChange={(e) => setOxygenSaturation(e.target.value)}
+                  className="w-full p-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Respiratory Rate (breaths/min)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 16/min"
+                  value={respiratoryRate}
+                  onChange={(e) => setRespiratoryRate(e.target.value)}
+                  className="w-full p-2 border rounded-lg"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Diagnosis */}
-          <div className="mb-4">
-            <label className="block text-[#04282E] font-medium mb-2">Diagnosis</label>
-            <textarea
-              className="w-full p-2 border rounded-lg text-black"
-              rows={3}
-              value={formData.doctorFindings.diagnosis}
-              onChange={(e) => setFormData({
-                ...formData,
-                doctorFindings: {
-                  ...formData.doctorFindings,
-                  diagnosis: e.target.value
-                }
-              })}
-            />
+          {/* Diagnosis & Prescription */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">
+              Diagnosis & Prescription
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Diagnosis
+                </label>
+                <textarea
+                  placeholder="Enter diagnosis"
+                  value={diagnosis}
+                  onChange={(e) => setDiagnosis(e.target.value)}
+                  rows={3}
+                  className="w-full p-2 border rounded-lg"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prescription Notes
+                </label>
+                <textarea
+                  placeholder="Enter prescription details"
+                  value={prescription}
+                  onChange={(e) => setPrescription(e.target.value)}
+                  rows={5}
+                  className="w-full p-2 border rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Medications */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-[#0D6C7E]">
+                Medications
+              </h2>
+              <button
+                type="button"
+                onClick={addMedication}
+                className="px-3 py-1 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D] text-sm"
+              >
+                Add Medication
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {medications.length > 0 ? (
+                medications.map((med, index) => (
+                  <div key={index} className="border p-4 rounded-lg relative">
+                    <button
+                      type="button"
+                      onClick={() => removeMedication(index)}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                    >
+                      &times;
+                    </button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Medication Name
+                        </label>
+                        <input
+                          type="text"
+                          value={med.name}
+                          onChange={(e) =>
+                            updateMedication(index, "name", e.target.value)
+                          }
+                          className="w-full p-2 border rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Dosage
+                        </label>
+                        <input
+                          type="text"
+                          value={med.dosage}
+                          onChange={(e) =>
+                            updateMedication(index, "dosage", e.target.value)
+                          }
+                          className="w-full p-2 border rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Frequency
+                        </label>
+                        <input
+                          type="text"
+                          value={med.frequency}
+                          onChange={(e) =>
+                            updateMedication(index, "frequency", e.target.value)
+                          }
+                          className="w-full p-2 border rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Duration
+                        </label>
+                        <input
+                          type="text"
+                          value={med.duration}
+                          onChange={(e) =>
+                            updateMedication(index, "duration", e.target.value)
+                          }
+                          className="w-full p-2 border rounded-lg"
+                          required
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Instructions
+                        </label>
+                        <input
+                          type="text"
+                          value={med.instructions}
+                          onChange={(e) =>
+                            updateMedication(
+                              index,
+                              "instructions",
+                              e.target.value
+                            )
+                          }
+                          className="w-full p-2 border rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">
+                  No medications added
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Notes */}
-          <div>
-            <label className="block text-[#04282E] font-medium mb-2">Notes</label>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">
+              Additional Notes
+            </h2>
             <textarea
-              className="w-full p-2 border rounded-lg text-black"
-              rows={4}
-              value={formData.doctorFindings.notes}
-              onChange={(e) => setFormData({
-                ...formData,
-                doctorFindings: {
-                  ...formData.doctorFindings,
-                  notes: e.target.value
-                }
-              })}
+              placeholder="Add any additional notes about this visit"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={5}
+              className="w-full p-2 border rounded-lg"
             />
           </div>
-        </div>
 
-        {/* Allergies */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-[#0D6C7E] mb-4">Allergies</h2>
-          
-          {/* Medication Allergies */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-medium text-[#0D6C7E]">Medication Allergies</h3>
-              <button
-                type="button"
-                onClick={() => addAllergy('medications')}
-                className="text-[#0D6C7E] hover:text-[#0A5A6A]"
-              >
-                + Add Medication Allergy
-              </button>
-            </div>
-            {formData.allergies.medications.map((allergy, index) => (
-              <div key={index} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  className="flex-1 p-2 border rounded-lg text-black"
-                  value={allergy}
-                  onChange={(e) => {
-                    const newAllergies = [...formData.allergies.medications]
-                    newAllergies[index] = e.target.value
-                    setFormData({
-                      ...formData,
-                      allergies: {
-                        ...formData.allergies,
-                        medications: newAllergies
-                      }
-                    })
-                  }}
-                />
-                {formData.allergies.medications.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeAllergy('medications', index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Food Allergies */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-medium text-[#0D6C7E]">Food Allergies</h3>
-              <button
-                type="button"
-                onClick={() => addAllergy('food')}
-                className="text-[#0D6C7E] hover:text-[#0A5A6A]"
-              >
-                + Add Food Allergy
-              </button>
-            </div>
-            {formData.allergies.food.map((allergy, index) => (
-              <div key={index} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  className="flex-1 p-2 border rounded-lg text-black"
-                  value={allergy}
-                  onChange={(e) => {
-                    const newAllergies = [...formData.allergies.food]
-                    newAllergies[index] = e.target.value
-                    setFormData({
-                      ...formData,
-                      allergies: {
-                        ...formData.allergies,
-                        food: newAllergies
-                      }
-                    })
-                  }}
-                />
-                {formData.allergies.food.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeAllergy('food', index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Other Allergies */}
-          <div>
-            <label className="block text-[#04282E] font-medium mb-2">Other Allergies</label>
-            <textarea
-              className="w-full p-2 border rounded-lg text-black"
-              rows={2}
-              placeholder="e.g., Dust, Pollen, etc."
-              value={formData.allergies.other}
-              onChange={(e) => setFormData({
-                ...formData,
-                allergies: {
-                  ...formData.allergies,
-                  other: e.target.value
-                }
-              })}
-            />
-          </div>
-        </div>
-
-        {/* Prescription */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-[#0D6C7E]">Prescription</h2>
-            <button
-              type="button"
-              onClick={addMedication}
-              className="text-[#0D6C7E] hover:text-[#0A5A6A]"
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-4">
+            <Link
+              href={`/doctors/patient-records/${patientId}`}
+              className="px-6 py-3 border border-[#0D6C7E] text-[#0D6C7E] rounded-lg hover:bg-[#F8FAFC]"
             >
-              + Add Medication
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-6 py-3 bg-[#0D6C7E] text-white rounded-lg hover:bg-[#08505D] disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save Visit Record"}
             </button>
           </div>
-          
-          {formData.prescription.medications.map((medication, index) => (
-            <div key={index} className="mb-6 last:mb-0">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-medium text-[#0D6C7E]">Medication {index + 1}</h3>
-                {formData.prescription.medications.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeMedication(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(medication).map(([key, value]) => (
-                  <div key={key}>
-                    <label className="block text-[#04282E] font-medium mb-2">
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border rounded-lg text-black"
-                      value={value}
-                      onChange={(e) => {
-                        const newMedications = [...formData.prescription.medications]
-                        newMedications[index] = {
-                          ...newMedications[index],
-                          [key]: e.target.value
-                        }
-                        setFormData({
-                          ...formData,
-                          prescription: {
-                            medications: newMedications
-                          }
-                        })
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Test Reports */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-[#0D6C7E]">Test Reports</h2>
-            <button
-              type="button"
-              onClick={addTestReport}
-              className="text-[#0D6C7E] hover:text-[#0A5A6A]"
-            >
-              + Add Test Report
-            </button>
-          </div>
-
-          {formData.testReports.map((report, index) => (
-            <div key={index} className="mb-8 last:mb-0 border-b last:border-0 pb-6 last:pb-0">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-[#0D6C7E]">Report {index + 1}</h3>
-                {formData.testReports.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeTestReport(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-[#04282E] font-medium mb-2">Test Name</label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-lg text-black"
-                    placeholder="e.g., Complete Blood Count"
-                    value={report.name}
-                    onChange={(e) => {
-                      const newTestReports = [...formData.testReports]
-                      newTestReports[index] = { ...report, name: e.target.value }
-                      setFormData({ ...formData, testReports: newTestReports })
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[#04282E] font-medium mb-2">Test Date</label>
-                  <input
-                    type="date"
-                    className="w-full p-2 border rounded-lg text-black"
-                    value={report.date}
-                    onChange={(e) => {
-                      const newTestReports = [...formData.testReports]
-                      newTestReports[index] = { ...report, date: e.target.value }
-                      setFormData({ ...formData, testReports: newTestReports })
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[#04282E] font-medium mb-2">Result</label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-lg text-black"
-                    value={report.result}
-                    onChange={(e) => {
-                      const newTestReports = [...formData.testReports]
-                      newTestReports[index] = { ...report, result: e.target.value }
-                      setFormData({ ...formData, testReports: newTestReports })
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[#04282E] font-medium mb-2">Normal Range</label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-lg text-black"
-                    placeholder="e.g., 4.5-11.0 × 10⁹/L"
-                    value={report.normalRange}
-                    onChange={(e) => {
-                      const newTestReports = [...formData.testReports]
-                      newTestReports[index] = { ...report, normalRange: e.target.value }
-                      setFormData({ ...formData, testReports: newTestReports })
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-[#04282E] font-medium mb-2">Notes</label>
-                <textarea
-                  className="w-full p-2 border rounded-lg text-black"
-                  rows={2}
-                  value={report.notes}
-                  onChange={(e) => {
-                    const newTestReports = [...formData.testReports]
-                    newTestReports[index] = { ...report, notes: e.target.value }
-                    setFormData({ ...formData, testReports: newTestReports })
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-[#04282E] font-medium mb-2">Upload Files</label>
-                <div className="flex flex-col space-y-2">
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileUpload(index, e.target.files)}
-                    className="block w-full text-sm text-slate-500
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-full file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-[#0D6C7E] file:text-white
-                      hover:file:bg-[#0A5A6A] text-black"
-                  />
-                  {report.files.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-sm font-medium text-[#04282E] mb-1">Uploaded Files:</p>
-                      <ul className="space-y-2">
-                        {report.files.map((file, fileIndex) => (
-                          <li 
-                            key={fileIndex} 
-                            className="flex items-center justify-between bg-gray-50 p-2 rounded-lg"
-                          >
-                            <span className="text-sm text-gray-600">{file.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeFile(index, fileIndex)}
-                              className="text-red-500 hover:text-red-700 p-1"
-                              title="Delete file"
-                            >
-                              <svg 
-                                className="w-4 h-4" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                              >
-                                <path 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  strokeWidth={2} 
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
-                                />
-                              </svg>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="bg-[#0D6C7E] text-white px-6 py-2 rounded-lg hover:bg-[#0A5A6A] transition-colors duration-200"
-          >
-            Save Visit Record
-          </button>
         </div>
       </form>
     </div>
-  )
-} 
+  );
+}

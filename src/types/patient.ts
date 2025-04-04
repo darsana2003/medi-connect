@@ -5,6 +5,14 @@ export interface Patient {
   phone: string;
   email: string;
   aadharId: string;
+  // Additional fields for user data mapping
+  fullName?: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  mobileNumber?: string;
+  adhaarNumber?: string;
+  // Regular patient fields
   age: number;
   gender: string;
   address: string;
@@ -33,7 +41,7 @@ export interface Patient {
     endDate?: string;
     goals: string[];
   };
-  status: 'admitted' | 'discharged' | 'under_observation' | 'regular';
+  status: "admitted" | "discharged" | "under_observation" | "regular";
   department?: string;
   doctorName?: string;
   lastVisit?: string;
